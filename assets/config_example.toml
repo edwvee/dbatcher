@@ -1,0 +1,29 @@
+#config example
+
+#address for pprof http (https://pkg.go.dev/runtime/pprof)
+#remove if you won't profile
+pprof_http_bind = "localhost:6034"
+
+[receivers]
+
+    [receivers.first-http]
+        type = "http"
+        #bind address
+        bind = ":8124"
+
+[inserters]
+
+    #first-clickhouse is a name
+    [inserters.first-clickhouse]
+        #use this type for clickhouse
+        type = "clickhouse"
+        #connection string (look here https://github.com/ClickHouse/clickhouse-go#dsn)
+        dsn = "tcp://localhost:9000?user=default"
+        #maximum simultaneous connections (treat like maximum simultaneous queries)
+        max_connections = 2
+        insert_timeout_ms = 30000
+
+    [inserters.second-dummy]
+        #dummy inserter only reports about inserts
+        type = "dummy"
+    

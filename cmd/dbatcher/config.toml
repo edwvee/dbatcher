@@ -1,0 +1,23 @@
+#config example
+
+[receivers]
+
+    [receivers.first-http]
+        type = "http"
+        #bind address
+        bind = ":8124"
+
+[inserters]
+
+    [inserters.first-clickhouse]
+        #use this type for clickhouse
+        type = "clickhouse"
+        #connection string (look here https://github.com/ClickHouse/clickhouse-go#dsn)
+        dsn = "tcp://127.0.0.1:9000?user=default"
+        #maximum simultaneous connections (treat like maximum simultaneous queries)
+        max_connections = 2
+        insert_timeout_ms = 3000000
+    #[inserters.second-dummy]
+        #dummy inserter only reports about inserts
+        #type = "dummy"
+
