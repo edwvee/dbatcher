@@ -133,7 +133,7 @@ func (ci ClickHouseInserter) getTableStructure(t *table.Table) (structure clickh
 		if err != nil {
 			return
 		}
-		if strings.HasPrefix(chType, "Enum") || strings.HasPrefix(chType, "FixedString") || strings.HasPrefix(chType, "Datetime64") {
+		if strings.HasPrefix(chType, "Enum") || strings.HasPrefix(chType, "FixedString") || strings.HasPrefix(chType, "DateTime64") {
 			chType = chType[0:strings.Index(chType, "(")]
 		}
 		structure[column] = chType

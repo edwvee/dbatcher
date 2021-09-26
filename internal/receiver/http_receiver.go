@@ -9,7 +9,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-const maxShutdownTime = 5 * time.Second
+const maxShutdownTime = 2 * time.Second
 
 var ErrDidntShutdownInTime = errors.New("HttpReceiver: server didn't shutdown in time")
 
@@ -30,6 +30,8 @@ func (r *HTTPReceiver) Init(config Config, errChan chan error, tMHolder *tablema
 		NoDefaultServerHeader: true,
 		NoDefaultContentType:  true,
 		NoDefaultDate:         true,
+		ReadTimeout:           10 * time.Second,
+		IdleTimeout:           300 * time.Second,
 	}
 
 	return nil

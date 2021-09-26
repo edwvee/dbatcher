@@ -1,6 +1,7 @@
 package tablemanager
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -10,19 +11,22 @@ import (
 )
 
 const maxTableMangerStopTime = 5 * time.Second
+const stopUnusedManagersInterval = 10 * time.Second
 
 var ErrTableManagerDidntStopInTime = errors.New("didn't stop in time")
 
 type TableManagerHolder struct {
-	inserters   map[string]inserter.Inserter
-	managers    map[string]*TableManager
-	managersMut sync.Mutex
+	inserters        map[string]inserter.Inserter
+	managers         map[string]*TableManager
+	lastManagerVisit map[string]time.Time
+	managersMut      sync.Mutex
 }
 
 func NewTableManagerHolder(errChan chan error, inserters map[string]inserter.Inserter) *TableManagerHolder {
 	return &TableManagerHolder{
-		inserters: inserters,
-		managers:  map[string]*TableManager{},
+		inserters:        inserters,
+		managers:         map[string]*TableManager{},
+		lastManagerVisit: map[string]time.Time{},
 	}
 }
 
@@ -47,10 +51,12 @@ func (h *TableManagerHolder) getTableManager(ts *table.TableSignature, config Ta
 	h.managersMut.Lock()
 	manager, ok := h.managers[key]
 	if !ok {
+		log.Printf("new table: %s", key)
 		manager = NewTableManager(ts, config, h.inserters)
 		go manager.Run()
 		h.managers[key] = manager
 	}
+	h.lastManagerVisit[key] = time.Now()
 	h.managersMut.Unlock()
 
 	if ok {
@@ -58,6 +64,31 @@ func (h *TableManagerHolder) getTableManager(ts *table.TableSignature, config Ta
 	}
 
 	return manager
+}
+
+func (h *TableManagerHolder) StopUnusedManagers() {
+	go h.stopUnusedManagers()
+}
+
+func (h *TableManagerHolder) stopUnusedManagers() {
+	ticker := time.NewTicker(stopUnusedManagersInterval)
+	for range ticker.C {
+		unusedManagers := []*TableManager{}
+		now := time.Now()
+		h.managersMut.Lock()
+		for key, lastVisited := range h.lastManagerVisit {
+			if now.Sub(lastVisited) > stopUnusedManagersInterval {
+				unusedManagers = append(unusedManagers, h.managers[key])
+				delete(h.managers, key)
+				delete(h.lastManagerVisit, key)
+			}
+		}
+		h.managersMut.Unlock()
+
+		for _, manager := range unusedManagers {
+			go manager.Stop()
+		}
+	}
 }
 
 func (h *TableManagerHolder) StopTableManagers() []error {

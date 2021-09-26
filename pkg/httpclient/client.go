@@ -11,9 +11,9 @@ import (
 )
 
 type ClientConfig struct {
-	serverAddress string
-	readTimeout   time.Duration
-	writeTimeout  time.Duration
+	ServerAddress string
+	ReadTimeout   time.Duration
+	WriteTimeout  time.Duration
 }
 
 type Client struct {
@@ -24,11 +24,11 @@ type Client struct {
 func NewClient(config ClientConfig) *Client {
 	return &Client{
 		client: &fasthttp.Client{
-			ReadTimeout:              config.readTimeout,
-			WriteTimeout:             config.writeTimeout,
+			ReadTimeout:              config.ReadTimeout,
+			WriteTimeout:             config.WriteTimeout,
 			NoDefaultUserAgentHeader: true,
 		},
-		serverAddress: config.serverAddress,
+		serverAddress: config.ServerAddress,
 	}
 }
 

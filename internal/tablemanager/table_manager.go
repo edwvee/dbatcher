@@ -159,6 +159,9 @@ func (tm *TableManager) insertConcurrently(tbl *table.Table) error {
 }
 
 func (tm *TableManager) Stop() {
+	key := tm.table.GetKey()
+	log.Printf("stopping table manager for %s", key)
 	tm.stopChannel <- struct{}{}
 	<-tm.stopChannel
+	log.Printf("stopped table manager for %s", key)
 }

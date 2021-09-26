@@ -51,6 +51,7 @@ func main() {
 
 	errChan := make(chan error)
 	tableManagerHolder := tablemanager.NewTableManagerHolder(errChan, inserters)
+	tableManagerHolder.StopUnusedManagers()
 
 	receivers := map[string]receiver.Receiver{}
 	for name, config := range c.Receivers {
