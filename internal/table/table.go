@@ -1,6 +1,7 @@
 package table
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -37,7 +38,9 @@ func (t *Table) Free() {
 
 func (t *Table) AppendRows(rowsJson []byte) error {
 	var target [][]interface{}
-	err := jsoniter.Unmarshal(rowsJson, &target)
+	decoder := jsoniter.NewDecoder(bytes.NewReader(rowsJson))
+	decoder.UseNumber()
+	err := decoder.Decode(&target)
 	if err != nil {
 		return errors.Wrap(err, "table: append rows:")
 	}

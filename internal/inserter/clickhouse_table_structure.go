@@ -1,6 +1,7 @@
 package inserter
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 )
@@ -38,11 +39,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 		var resEl interface{}
 		switch columnType {
 		case chUInt8:
-			switch el.(type) {
-			case float64:
-				resEl = uint8(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = uint8(val)
 			case string:
-				preResEl, err := strconv.ParseUint(el.(string), 10, 8)
+				preResEl, err := strconv.ParseUint(el, 10, 8)
 				if err != nil {
 					return nil, err
 				}
@@ -51,11 +56,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chUInt16:
-			switch el.(type) {
-			case float64:
-				resEl = uint16(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = uint16(val)
 			case string:
-				preResEl, err := strconv.ParseUint(el.(string), 10, 16)
+				preResEl, err := strconv.ParseUint(el, 10, 16)
 				if err != nil {
 					return nil, err
 				}
@@ -64,11 +73,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chUInt32:
-			switch el.(type) {
-			case float64:
-				resEl = uint32(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = uint32(val)
 			case string:
-				preResEl, err := strconv.ParseUint(el.(string), 10, 32)
+				preResEl, err := strconv.ParseUint(el, 10, 32)
 				if err != nil {
 					return nil, err
 				}
@@ -77,11 +90,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chUInt64:
-			switch el.(type) {
-			case float64:
-				resEl = uint64(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = uint64(val)
 			case string:
-				preResEl, err := strconv.ParseUint(el.(string), 10, 16)
+				preResEl, err := strconv.ParseUint(el, 10, 16)
 				if err != nil {
 					return nil, err
 				}
@@ -90,11 +107,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chInt8:
-			switch el.(type) {
-			case float64:
-				resEl = int8(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = int8(val)
 			case string:
-				preResEl, err := strconv.ParseInt(el.(string), 10, 8)
+				preResEl, err := strconv.ParseInt(el, 10, 8)
 				if err != nil {
 					return nil, err
 				}
@@ -103,11 +124,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chInt16:
-			switch el.(type) {
-			case float64:
-				resEl = int16(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = int16(val)
 			case string:
-				preResEl, err := strconv.ParseInt(el.(string), 10, 16)
+				preResEl, err := strconv.ParseInt(el, 10, 16)
 				if err != nil {
 					return nil, err
 				}
@@ -116,11 +141,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chInt32:
-			switch el.(type) {
-			case float64:
-				resEl = int32(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = int32(val)
 			case string:
-				preResEl, err := strconv.ParseInt(el.(string), 10, 32)
+				preResEl, err := strconv.ParseInt(el, 10, 32)
 				if err != nil {
 					return nil, err
 				}
@@ -129,11 +158,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chInt64:
-			switch el.(type) {
-			case float64:
-				resEl = int64(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = int64(val)
 			case string:
-				preResEl, err := strconv.ParseInt(el.(string), 10, 64)
+				preResEl, err := strconv.ParseInt(el, 10, 64)
 				if err != nil {
 					return nil, err
 				}
@@ -142,17 +175,25 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chFloat32:
-			preResEl, ok := el.(float64)
+			preResEl, ok := el.(json.Number)
 			if !ok {
 				return nil, ErrCantParseToClickhouseType
 			}
-			resEl = float32(preResEl)
+			val, err := preResEl.Float64()
+			if err != nil {
+				return nil, err
+			}
+			resEl = float32(val)
 		case chFloat64:
-			preResEl, ok := el.(float64)
+			preResEl, ok := el.(json.Number)
 			if !ok {
 				return nil, ErrCantParseToClickhouseType
 			}
-			resEl = preResEl
+			val, err := preResEl.Float64()
+			if err != nil {
+				return nil, err
+			}
+			resEl = val
 		case chString, chFixedString:
 			preResEl, ok := el.(string)
 			if !ok {
@@ -160,11 +201,15 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			}
 			resEl = preResEl
 		case chDate, chDateTime:
-			switch el.(type) {
-			case float64:
-				resEl = int64(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = int64(val)
 			case string:
-				preResEl, err := strconv.ParseInt(el.(string), 10, 64)
+				preResEl, err := strconv.ParseInt(el, 10, 64)
 				if err != nil {
 					resEl = el
 				} else {
@@ -181,9 +226,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chEnum8, chEnum16:
-			switch el.(type) {
-			case float64:
-				resEl = int64(el.(float64))
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, err
+				}
+				resEl = int16(val)
 			case string:
 				resEl = el
 			default:
