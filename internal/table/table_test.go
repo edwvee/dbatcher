@@ -3,6 +3,7 @@ package table
 import (
 	"encoding/json"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -25,7 +26,10 @@ func TestAppendRowsPositive(t *testing.T) {
 	table := getTestTable()
 
 	//float64 cause json has no int
-	values := [][]interface{}{{"43434", float64(54), "ererr"}, {"gfhfdh", float64(5864), "ghjkgjfg"}}
+	values := [][]interface{}{
+		{"43434", json.Number(strconv.Itoa(54)), "ererr"},
+		{"gfhfdh", json.Number(strconv.Itoa(5864)), "ghjkgjfg"},
+	}
 	rowsJson, err := json.Marshal(values)
 	if err != nil {
 		t.Fatal(err)
