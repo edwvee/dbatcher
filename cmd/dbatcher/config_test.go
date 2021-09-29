@@ -4,17 +4,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/BurntSushi/toml"
 	"github.com/edwvee/dbatcher/internal/inserter"
 	"github.com/edwvee/dbatcher/internal/receiver"
 )
 
 func TestConfig(t *testing.T) {
-	resultingConfig := config{}
-	_, err := toml.DecodeFile("../../assets/config_example.toml", &resultingConfig)
-	if err != nil {
-		t.Error(err)
-	}
+	resultingConfig := getConfig("../../assets/config_example.toml")
 
 	expectedConfig := config{
 		Receivers: map[string]receiver.Config{

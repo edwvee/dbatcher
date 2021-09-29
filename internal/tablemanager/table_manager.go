@@ -48,7 +48,7 @@ func (tm *TableManager) AppendRowsToTable(rowsJson []byte) error {
 	err := tm.table.AppendRows(rowsJson)
 	tm.tableMut.Unlock()
 	if tm.IsTooManyRows() {
-		//TODO: log
+		log.Printf("reached max rows for table %s", tm.table.GetKey())
 		select {
 		case tm.sendChannel <- struct{}{}:
 		default:

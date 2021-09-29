@@ -16,20 +16,37 @@ import (
 
 func main() {
 	//TODO: use flags
-	var c config
 	configPath := "config.toml"
 	if len(os.Args) > 1 {
 		configPath = os.Args[1]
 	}
-	_, err := toml.DecodeFile(configPath, &c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	c := getConfig(configPath)
 
 	if c.PprofHttpBind != "" {
 		go http.ListenAndServe(c.PprofHttpBind, nil)
 	}
 
+	inserters := makeInserters(c)
+	errChan := make(chan error)
+	tableManagerHolder := tablemanager.NewTableManagerHolder(errChan, inserters)
+	tableManagerHolder.StopUnusedManagers()
+	receivers := makeAndStartReceivers(c, errChan, tableManagerHolder)
+
+	waitForTermination(errChan)
+	terminate(receivers, tableManagerHolder)
+}
+
+func getConfig(configPath string) config {
+	var c config
+	_, err := toml.DecodeFile(configPath, &c)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return c
+}
+
+func makeInserters(c config) map[string]inserter.Inserter {
 	inserters := map[string]inserter.Inserter{}
 	for name, config := range c.Inserters {
 		log.Printf("creating inserter %s", name)
@@ -49,10 +66,10 @@ func main() {
 		inserters[name] = ins
 	}
 
-	errChan := make(chan error)
-	tableManagerHolder := tablemanager.NewTableManagerHolder(errChan, inserters)
-	tableManagerHolder.StopUnusedManagers()
+	return inserters
+}
 
+func makeAndStartReceivers(c config, errChan chan error, tableManagerHolder *tablemanager.TableManagerHolder) map[string]receiver.Receiver {
 	receivers := map[string]receiver.Receiver{}
 	for name, config := range c.Receivers {
 		log.Printf("creating receiver %s", name)
@@ -71,6 +88,10 @@ func main() {
 		receivers[name] = rec
 	}
 
+	return receivers
+}
+
+func waitForTermination(errChan chan error) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 	select {
@@ -79,10 +100,12 @@ func main() {
 	case err := <-errChan:
 		log.Printf("fatal error: %s", err.Error())
 	}
+}
 
+func terminate(receivers map[string]receiver.Receiver, tableManagerHolder *tablemanager.TableManagerHolder) {
 	for name, rec := range receivers {
 		log.Printf("stoping receiver %s", name)
-		err = rec.Stop()
+		err := rec.Stop()
 		if err != nil {
 			log.Println(err)
 		}
