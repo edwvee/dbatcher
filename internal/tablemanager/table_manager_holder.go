@@ -10,8 +10,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-const maxTableMangerStopTime = 5 * time.Second
-const stopUnusedManagersInterval = 10 * time.Second
+const maxTableManagerStopTime = 5 * time.Second
+
+//not const for speedind up tests
+var stopUnusedManagersInterval = 10 * time.Second
 
 var ErrTableManagerDidntStopInTime = errors.New("didn't stop in time")
 
@@ -97,7 +99,7 @@ func (h *TableManagerHolder) StopTableManagers() []error {
 	errChan := make(chan error)
 	for name, manager := range h.managers {
 		go func(name string, manager *TableManager) {
-			timer := time.NewTimer(maxTableMangerStopTime)
+			timer := time.NewTimer(maxTableManagerStopTime)
 			stopChan := make(chan struct{})
 			go func(manager *TableManager, stopChan chan struct{}) {
 				manager.Stop()
