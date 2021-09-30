@@ -2,8 +2,10 @@ package table
 
 import (
 	"encoding/json"
+	"errors"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -22,10 +24,9 @@ func TestTableSignatureGetKey(t *testing.T) {
 	}
 }
 
-func TestAppendRowsPositive(t *testing.T) {
+func TestAppendRowsFullPositive(t *testing.T) {
 	table := getTestTable()
 
-	//float64 cause json has no int
 	values := [][]interface{}{
 		{"43434", json.Number(strconv.Itoa(54)), "ererr"},
 		{"gfhfdh", json.Number(strconv.Itoa(5864)), "ghjkgjfg"},
@@ -44,6 +45,9 @@ func TestAppendRowsPositive(t *testing.T) {
 	if len(table.data) != int(expectedLen) {
 		t.Errorf("Wrong data length: want %d, got %d", expectedLen, len(table.data))
 	}
+	if rowsLen := table.GetRowsLen(); rowsLen != len(values) {
+		t.Errorf("wrong rows len: expected %d, got %d", len(values), rowsLen)
+	}
 
 	expectedValues := []interface{}{}
 	for _, arr := range values {
@@ -51,6 +55,66 @@ func TestAppendRowsPositive(t *testing.T) {
 	}
 	if !reflect.DeepEqual(table.data, expectedValues) {
 		t.Errorf("table.data and encoded values are not equal")
+	}
+
+	for row, i := table.GetNextRow(), 0; row != nil; row, i = table.GetNextRow(), i+1 {
+		if !reflect.DeepEqual(row, values[i]) {
+			t.Errorf("row not equal after append: got %v, expected %v, i %d", row, values[i], i)
+		}
+	}
+	if table.dataPos != 0 {
+		t.Error("table.dataPos should be 0 after iterating over rows")
+	}
+
+	table.Free()
+	if table.data != nil {
+		t.Error("after free table data should be nil")
+	}
+}
+
+func TestAppendRowsFullNegative(t *testing.T) {
+	table := getTestTable()
+
+	values := [][]interface{}{
+		{"43434", json.Number(strconv.Itoa(54)), "ererr"},
+		{"gfhfdh", "ghjkgjfg"},
+	}
+	rowsJson, err := json.Marshal(values)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	err = table.AppendRows(rowsJson)
+	if !errors.Is(err, ErrWrongRowLen) {
+		t.Fatal(err)
+	}
+	if len(table.data) != 0 {
+		t.Error("negative append shouldn't add rows to table")
+	}
+
+	expectedLen := 0
+	if len(table.data) != int(expectedLen) {
+		t.Errorf("Wrong data length: want %d, got %d", expectedLen, len(table.data))
+	}
+	if rowsLen := table.GetRowsLen(); rowsLen != 0 {
+		t.Errorf("wrong rows len: expected %d, got %d", 0, rowsLen)
+	}
+
+	values = [][]interface{}{
+		{"43434", json.Number(strconv.Itoa(54)), "ererr"},
+		{"gfhfdh", "ghjkgjfg"},
+	}
+	rowsJson, err = json.Marshal(values)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	rowsJson[0] = '{'
+
+	err = table.AppendRows(rowsJson)
+	if err == nil || !strings.Contains(err.Error(), "json parsing") {
+		t.Error("should be error about parsing json")
 	}
 }
 

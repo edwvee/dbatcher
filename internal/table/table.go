@@ -2,14 +2,13 @@ package table
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
 
-var ErrWrongRowLen = "wrong row length"
+var ErrWrongRowLen = errors.New("")
 
 type Table struct {
 	TableSignature
@@ -42,12 +41,14 @@ func (t *Table) AppendRows(rowsJson []byte) error {
 	decoder.UseNumber()
 	err := decoder.Decode(&target)
 	if err != nil {
-		return errors.Wrap(err, "table: append rows:")
+		return errors.Wrap(err, "table: append rows: json parsing:")
 	}
 	for _, el := range target {
 		if len(el) != t.rowLen {
 			return t.wrongLengthErr(el)
 		}
+	}
+	for _, el := range target {
 		t.data = append(t.data, el...)
 	}
 
@@ -59,7 +60,8 @@ func (t Table) GetRowsLen() int {
 }
 
 func (t Table) wrongLengthErr(el []interface{}) error {
-	return fmt.Errorf(
+	return errors.Wrapf(
+		ErrWrongRowLen,
 		"wrong row length: need %d, got %d, row %v",
 		t.rowLen, len(el), el,
 	)
