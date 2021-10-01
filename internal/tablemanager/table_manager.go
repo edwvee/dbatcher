@@ -47,7 +47,7 @@ func (tm *TableManager) AppendRowsToTable(rowsJson []byte) error {
 	tm.tableMut.Lock()
 	err := tm.table.AppendRows(rowsJson)
 	tm.tableMut.Unlock()
-	if tm.IsTooManyRows() {
+	if tm.isTooManyRows() {
 		log.Printf("reached max rows for table %s", tm.table.GetKey())
 		select {
 		case tm.sendChannel <- struct{}{}:
@@ -58,7 +58,7 @@ func (tm *TableManager) AppendRowsToTable(rowsJson []byte) error {
 	return err
 }
 
-func (tm *TableManager) IsTooManyRows() bool {
+func (tm *TableManager) isTooManyRows() bool {
 	tm.tableMut.Lock()
 	rowsLen := tm.table.GetRowsLen()
 	tm.tableMut.Unlock()
@@ -73,7 +73,7 @@ func (tm *TableManager) Run() {
 		select {
 		case <-timer.C:
 		case <-tm.sendChannel:
-			if !tm.IsTooManyRows() {
+			if !tm.isTooManyRows() {
 				continue
 			}
 			timer.Stop()

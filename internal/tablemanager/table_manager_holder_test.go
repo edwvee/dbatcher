@@ -1,6 +1,8 @@
 package tablemanager
 
 import (
+	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -8,13 +10,6 @@ import (
 	"github.com/edwvee/dbatcher/internal/inserter"
 	"github.com/edwvee/dbatcher/internal/table"
 )
-
-var defaultTestInserters = map[string]inserter.Inserter{
-	"dummy": &inserter.DummyInserter{},
-}
-var defaultTestErrChan = make(chan error)
-var defaultTestTableSignature = table.NewTableSignature("db.`table`", "field1, field2, field3")
-var defaultTestTableManagerConfig = NewTableManagerConfig(1000, 100, false)
 
 func TestNewTableManagerHolder(t *testing.T) {
 	tmh := NewTableManagerHolder(defaultTestErrChan, defaultTestInserters)
@@ -69,7 +64,7 @@ func TestGetTableManager(t *testing.T) {
 	}
 }
 
-func TestStopTableManagers(t *testing.T) {
+func TestStopUnusedTableManagers(t *testing.T) {
 	tmc := defaultTestTableManagerConfig
 	tmh := NewTableManagerHolder(defaultTestErrChan, defaultTestInserters)
 	tmh.getTableManager(&defaultTestTableSignature, tmc)
@@ -90,4 +85,58 @@ func TestStopTableManagers(t *testing.T) {
 		t.Errorf("shouldn't present any last manager visit")
 	}
 	tmh.managersMut.Unlock()
+}
+
+func TestStopTableManagersPositive(t *testing.T) {
+	tmc := defaultTestTableManagerConfig
+	si := &selfSliceInserter{}
+	si.Init(inserter.Config{})
+	inserters := map[string]inserter.Inserter{"self slice inserter": si}
+	tmh := NewTableManagerHolder(defaultTestErrChan, inserters)
+	tmh.getTableManager(&defaultTestTableSignature, tmc)
+
+	const managersSize = 10
+	for i := 0; i < managersSize; i++ {
+		ts := table.NewTableSignature(fmt.Sprintf("table%d", i), "field1")
+		err := tmh.Append(&ts, defaultTestTableManagerConfig, false, []byte("[[1]]"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		tmh.getTableManager(&ts, tmc)
+	}
+	if errs := tmh.StopTableManagers(); len(errs) != 0 {
+		for _, err := range errs {
+			t.Errorf("didn't stop manager, got error: %s", err.Error())
+		}
+	}
+	data := si.TakeSlice()
+	if len(data) != managersSize {
+		t.Errorf("not all data was inserted")
+	}
+}
+
+func TestStopTableManagersNegative(t *testing.T) {
+	tmc := defaultTestTableManagerConfig
+	inserters := map[string]inserter.Inserter{"first": &longSleepInserter{}, "second": &longSleepInserter{}}
+	tmh := NewTableManagerHolder(defaultTestErrChan, inserters)
+	tmh.getTableManager(&defaultTestTableSignature, tmc)
+
+	const managersSize = 10
+	for i := 0; i < managersSize; i++ {
+		ts := table.NewTableSignature(fmt.Sprintf("table%d", i), "field1")
+		err := tmh.Append(&ts, defaultTestTableManagerConfig, false, []byte("[[1]]"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		tmh.getTableManager(&ts, tmc)
+	}
+	errs := tmh.StopTableManagers()
+	if len(errs) != managersSize {
+		t.Fatalf("should be %d errors, got %d", managersSize, len(errs))
+	}
+	for _, err := range errs {
+		if !errors.Is(err, ErrTableManagerDidntStopInTime) {
+			t.Fatalf("all errors should be ErrTableManagerDidntStopInTime, got: %v", err)
+		}
+	}
 }
