@@ -2,8 +2,9 @@ package inserter
 
 import (
 	"encoding/json"
-	"errors"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 type clickhouseType = string
@@ -43,13 +44,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := strconv.ParseUint(string(el), 10, 8)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = uint8(val)
 			case string:
 				preResEl, err := strconv.ParseUint(el, 10, 8)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = uint8(preResEl)
 			default:
@@ -60,13 +61,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := strconv.ParseUint(string(el), 10, 16)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = uint16(val)
 			case string:
 				preResEl, err := strconv.ParseUint(el, 10, 16)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = uint16(preResEl)
 			default:
@@ -77,13 +78,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := strconv.ParseUint(string(el), 10, 32)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = uint32(val)
 			case string:
 				preResEl, err := strconv.ParseUint(el, 10, 32)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = uint32(preResEl)
 			default:
@@ -94,13 +95,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := strconv.ParseUint(string(el), 10, 64)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = uint64(val)
 			case string:
 				preResEl, err := strconv.ParseUint(el, 10, 64)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = preResEl
 			default:
@@ -111,13 +112,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := el.Int64()
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int8(val)
 			case string:
 				preResEl, err := strconv.ParseInt(el, 10, 8)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int8(preResEl)
 			default:
@@ -128,13 +129,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := el.Int64()
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int16(val)
 			case string:
 				preResEl, err := strconv.ParseInt(el, 10, 16)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int16(preResEl)
 			default:
@@ -145,13 +146,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := el.Int64()
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int32(val)
 			case string:
 				preResEl, err := strconv.ParseInt(el, 10, 32)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int32(preResEl)
 			default:
@@ -162,13 +163,13 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := el.Int64()
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int64(val)
 			case string:
 				preResEl, err := strconv.ParseInt(el, 10, 64)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int64(preResEl)
 			default:
@@ -181,7 +182,7 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			}
 			val, err := preResEl.Float64()
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "convert to clickhouse type")
 			}
 			resEl = float32(val)
 		case chFloat64:
@@ -191,7 +192,7 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			}
 			val, err := preResEl.Float64()
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "convert to clickhouse type")
 			}
 			resEl = val
 		case chString, chFixedString:
@@ -205,7 +206,7 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := el.Int64()
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int64(val)
 			case string:
@@ -230,7 +231,7 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 			case json.Number:
 				val, err := el.Int64()
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "convert to clickhouse type")
 				}
 				resEl = int16(val)
 			case string:

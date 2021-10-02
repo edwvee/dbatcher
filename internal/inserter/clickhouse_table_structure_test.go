@@ -8,40 +8,40 @@ import (
 	"testing"
 )
 
-func TestClickhouseTableStructureConvertJsonRow(t *testing.T) {
+var fullTypeClickhouseStructure = clickhouseStructure{
+	"uint8Number":      chUInt8,
+	"uint16Number":     chUInt16,
+	"uint32Number":     chUInt32,
+	"uint64Number":     chUInt64,
+	"int8Number":       chInt8,
+	"int16Number":      chInt16,
+	"int32Number":      chInt32,
+	"int64Number":      chInt64,
+	"uint8String":      chUInt8,
+	"uint16String":     chUInt16,
+	"uint32String":     chUInt32,
+	"uint64String":     chUInt64,
+	"int8String":       chInt8,
+	"int16String":      chInt16,
+	"int32String":      chInt32,
+	"int64String":      chInt64,
+	"float32Number":    chFloat32,
+	"float64Number":    chFloat64,
+	"stringString":     chString,
+	"stringFStrinF":    chFixedString,
+	"dateNumber":       chDate,
+	"dateTimeNumber":   chDateTime,
+	"dateString":       chDate,
+	"dateTimeString":   chDateTime,
+	"dateTime64String": chDateTime64,
+	"enum8Number":      chEnum8,
+	"enum16Number":     chEnum16,
+	"enum8String":      chEnum8,
+	"enum16String":     chEnum16,
+}
 
+func TestClickhouseTableStructureConvertJsonRowPositive(t *testing.T) {
 	//gotta catch'em all
-	ts := clickhouseStructure{
-		"uint8Number":      chUInt8,
-		"uint16Number":     chUInt16,
-		"uint32Number":     chUInt32,
-		"uint64Number":     chUInt64,
-		"int8Number":       chInt8,
-		"int16Number":      chInt16,
-		"int32Number":      chInt32,
-		"int64Number":      chInt64,
-		"uint8String":      chUInt8,
-		"uint16String":     chUInt16,
-		"uint32String":     chUInt32,
-		"uint64String":     chUInt64,
-		"int8String":       chInt8,
-		"int16String":      chInt16,
-		"int32String":      chInt32,
-		"int64String":      chInt64,
-		"float32Number":    chFloat32,
-		"float64Number":    chFloat64,
-		"stringString":     chString,
-		"stringFStrinF":    chFixedString,
-		"dateNumber":       chDate,
-		"dateTimeNumber":   chDateTime,
-		"dateString":       chDate,
-		"dateTimeString":   chDateTime,
-		"dateTime64String": chDateTime64,
-		"enum8Number":      chEnum8,
-		"enum16Number":     chEnum16,
-		"enum8String":      chEnum8,
-		"enum16String":     chEnum16,
-	}
 	columns := []string{
 		"uint8Number",
 		"uint16Number",
@@ -136,12 +136,81 @@ func TestClickhouseTableStructureConvertJsonRow(t *testing.T) {
 		"1000",                    //"enum16String":     chEnum16,
 	}
 
-	resultRow, err := ts.ConvertJsonRow(columns, row)
+	resultRow, err := fullTypeClickhouseStructure.ConvertJsonRow(columns, row)
 	if err != nil {
 		t.Error(err)
 		t.Fail()
 	}
 	if !reflect.DeepEqual(expectedRow, resultRow) {
 		t.Fail()
+	}
+}
+
+func TestClickhouseTableStructureConvertJsonRowNegative(t *testing.T) {
+	invalidCases := map[string]interface{}{
+		"uint8Number":      json.Number("asd"),
+		"uint16Number":     json.Number("asd"),
+		"uint32Number":     json.Number("asd"),
+		"uint64Number":     json.Number("asd"),
+		"int8Number":       json.Number("asd"),
+		"int16Number":      json.Number("asd"),
+		"int32Number":      json.Number("asd"),
+		"int64Number":      json.Number("asd"),
+		"uint8String":      "asd",
+		"uint16String":     "asd",
+		"uint32String":     "asd",
+		"uint64String":     "asd",
+		"int8String":       "asd",
+		"int16String":      "asd",
+		"int32String":      "asd",
+		"int64String":      "asd",
+		"float32Number":    json.Number("asd"),
+		"float64Number":    json.Number("asd"),
+		"stringString":     json.Number("1"),
+		"chFixedString":    json.Number("1"),
+		"dateNumber":       json.Number("qwe"),
+		"dateTimeNumber":   json.Number("qwe"),
+		"dateString":       []interface{}{},
+		"dateTimeString":   []interface{}{},
+		"dateTime64String": json.Number("2323.434"),
+		"enum8Number":      json.Number("1ss"),
+		"enum16Number":     json.Number("1ss"),
+		"enum8String":      []interface{}{},
+		"enum16String":     []interface{}{},
+	}
+	for column, value := range invalidCases {
+		columns := []string{column}
+		row := []interface{}{value}
+		resultRow, err := fullTypeClickhouseStructure.ConvertJsonRow(columns, row)
+		if resultRow != nil {
+			t.Fatalf("result row should be nill; column %s, value %x", column, value)
+		}
+		if err == nil {
+			t.Fatalf("err shouldn't be nill; column %s, value %x", column, value)
+		}
+	}
+	additionalCases := map[string]interface{}{
+
+		"uint8Number":   []interface{}{},
+		"uint16Number":  []interface{}{},
+		"uint32Number":  []interface{}{},
+		"uint64Number":  []interface{}{},
+		"int8Number":    []interface{}{},
+		"int16Number":   []interface{}{},
+		"int32Number":   []interface{}{},
+		"int64Number":   []interface{}{},
+		"float32Number": []interface{}{},
+		"float64Number": []interface{}{},
+	}
+	for column, value := range additionalCases {
+		columns := []string{column}
+		row := []interface{}{value}
+		resultRow, err := fullTypeClickhouseStructure.ConvertJsonRow(columns, row)
+		if resultRow != nil {
+			t.Fatalf("result row should be nill; column %s, value %x", column, value)
+		}
+		if err == nil {
+			t.Fatalf("err shouldn't be nill; column %s, value %x", column, value)
+		}
 	}
 }
