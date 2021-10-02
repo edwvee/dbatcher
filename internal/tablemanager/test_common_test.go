@@ -1,6 +1,7 @@
 package tablemanager
 
 import (
+	"errors"
 	"sync"
 	"time"
 
@@ -54,4 +55,14 @@ func (si *longSleepInserter) Insert(t *table.Table) error {
 	time.Sleep(time.Minute)
 
 	return nil
+}
+
+type errorInserter struct{}
+
+func (si *errorInserter) Init(c inserter.Config) error {
+	return nil
+}
+
+func (si *errorInserter) Insert(t *table.Table) error {
+	return errors.New("some error")
 }

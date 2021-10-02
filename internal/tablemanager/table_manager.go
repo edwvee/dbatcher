@@ -33,8 +33,6 @@ func NewTableManager(ts *table.TableSignature, config TableManagerConfig, insert
 		timeoutMs:   config.TimeoutMs,
 		sendChannel: make(chan struct{}, 1),
 		stopChannel: make(chan struct{}),
-
-		//TODO: a lot
 	}
 }
 
@@ -110,7 +108,7 @@ func (tm *TableManager) DoInsert() (err error) {
 			err = inserter.Insert(tbl)
 		}
 	} else {
-		err = tm.insertConcurrently(tbl)
+		err = tm.insertConcurrently()
 	}
 	tbl.Free()
 
@@ -137,13 +135,13 @@ func (tm *TableManager) getTableAndMakeNew() *table.Table {
 	return oldTable
 }
 
-func (tm *TableManager) insertConcurrently(tbl *table.Table) error {
+func (tm *TableManager) insertConcurrently() error {
 	errChan := make(chan error)
 	defer close(errChan)
 	for _, ins := range tm.inserters {
 		go func(inserter inserter.Inserter, t table.Table) {
 			errChan <- inserter.Insert(&t)
-		}(ins, *tbl)
+		}(ins, *tm.table)
 	}
 	errMessages := make([]string, 0, len(tm.inserters))
 	for range tm.inserters {

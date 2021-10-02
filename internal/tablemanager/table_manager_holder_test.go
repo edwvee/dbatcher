@@ -140,3 +140,33 @@ func TestStopTableManagersNegative(t *testing.T) {
 		}
 	}
 }
+
+func TestTableManagerAppendSyncPositive(t *testing.T) {
+	tmc := defaultTestTableManagerConfig
+	si := &selfSliceInserter{}
+	si.Init(inserter.Config{})
+	inserters := map[string]inserter.Inserter{"self slice inserter": si}
+	tmh := NewTableManagerHolder(defaultTestErrChan, inserters)
+	ts := table.NewTableSignature("database.`table`", "field1")
+	err := tmh.Append(&ts, tmc, true, []byte("[[1]]"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := si.TakeSlice()
+	if len(data) != 1 {
+		t.Fatal("didn't insert")
+	}
+}
+
+func TestTableManagerAppendSyncNegative(t *testing.T) {
+	tmc := defaultTestTableManagerConfig
+	si := &selfSliceInserter{}
+	si.Init(inserter.Config{})
+	inserters := map[string]inserter.Inserter{"self slice inserter": si}
+	tmh := NewTableManagerHolder(defaultTestErrChan, inserters)
+	ts := table.NewTableSignature("database.`table`", "field1")
+	err := tmh.Append(&ts, tmc, true, []byte("[[1]56]"))
+	if err == nil {
+		t.Fatal("this is for coverage, i don't know what use could be here")
+	}
+}
