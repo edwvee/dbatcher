@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+	"time"
 )
 
 var fullTypeClickhouseStructure = clickhouseStructure{
@@ -104,36 +105,40 @@ func TestClickhouseTableStructureConvertJsonRowPositive(t *testing.T) {
 		"1",                                                 //"enum8String":      chEnum8,
 		"1000",                                              //"enum16String":     chEnum16,
 	}
+	dt64, err := time.ParseInLocation("2006-01-02 15:04:05.999", "2021-09-29 01:52:16.999", time.Local)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expectedRow := []interface{}{
-		uint8(1 << 2),             //"uint8Number":      chUInt8,
-		uint16(1 << 9),            //"uint16Number":     chUInt16,
-		uint32(1 << 17),           //"uint32Number":     chUInt32,
-		uint64(math.MaxUint64),    //"uint64Number":     chUInt64,
-		int8(-1 * (1 << 2)),       //"int8Number":       chInt8,
-		int16(-1 * (1 << 9)),      //"int16Number":      chInt16,
-		int32(-1 * (1 << 17)),     //"int32Number":      chInt32,
-		int64(-1 * (1 << 62)),     //"int64Number":      chInt64,
-		uint8(1 << 2),             //"uint8String":      chUInt8,
-		uint16(1 << 9),            //"uint16String":     chUInt16,
-		uint32(1 << 17),           //"uint32String":     chUInt32,
-		uint64(math.MaxUint64),    //"uint64String":     chUInt64,
-		int8(-1 * (1 << 2)),       //"int8String":       chInt8,
-		int16(-1 * (1 << 9)),      //"int16String":      chInt16,
-		int32(-1 * (1 << 17)),     //"int32String":      chInt32,
-		int64(-1 * (1 << 62)),     //"int64String":      chInt64,
-		float32(34435.353535),     //"float32Number":    chFloat32,
-		float64(34454435.353535),  //"float64Number":    chFloat64,
-		"string",                  //"stringString":     chString,
-		"fixedString",             //"stringFStrinF":    chFixedString,
-		int64(1632949379),         //"dateNumber":       chDate,
-		int64(1632949379),         //"dateTimeNumber":   chDateTime,
-		"2021-09-29",              //"dateString":       chDate,
-		"2021-09-29 01:52:16",     //"dateTimeString":   chDateTime,
-		"2021-09-29 01:52:16.999", //"dateTime64String": chDateTime64,
-		int16(1),                  //"enum8Number":      chEnum8,
-		int16(1000),               //"enum16Number":     chEnum16,
-		"1",                       //"enum8String":      chEnum8,
-		"1000",                    //"enum16String":     chEnum16,
+		uint8(1 << 2),            //"uint8Number":      chUInt8,
+		uint16(1 << 9),           //"uint16Number":     chUInt16,
+		uint32(1 << 17),          //"uint32Number":     chUInt32,
+		uint64(math.MaxUint64),   //"uint64Number":     chUInt64,
+		int8(-1 * (1 << 2)),      //"int8Number":       chInt8,
+		int16(-1 * (1 << 9)),     //"int16Number":      chInt16,
+		int32(-1 * (1 << 17)),    //"int32Number":      chInt32,
+		int64(-1 * (1 << 62)),    //"int64Number":      chInt64,
+		uint8(1 << 2),            //"uint8String":      chUInt8,
+		uint16(1 << 9),           //"uint16String":     chUInt16,
+		uint32(1 << 17),          //"uint32String":     chUInt32,
+		uint64(math.MaxUint64),   //"uint64String":     chUInt64,
+		int8(-1 * (1 << 2)),      //"int8String":       chInt8,
+		int16(-1 * (1 << 9)),     //"int16String":      chInt16,
+		int32(-1 * (1 << 17)),    //"int32String":      chInt32,
+		int64(-1 * (1 << 62)),    //"int64String":      chInt64,
+		float32(34435.353535),    //"float32Number":    chFloat32,
+		float64(34454435.353535), //"float64Number":    chFloat64,
+		"string",                 //"stringString":     chString,
+		"fixedString",            //"stringFStrinF":    chFixedString,
+		int64(1632949379),        //"dateNumber":       chDate,
+		int64(1632949379),        //"dateTimeNumber":   chDateTime,
+		"2021-09-29",             //"dateString":       chDate,
+		"2021-09-29 01:52:16",    //"dateTimeString":   chDateTime,
+		dt64,                     //"dateTime64String": chDateTime64,
+		int8(1),                  //"enum8Number":      chEnum8,
+		int16(1000),              //"enum16Number":     chEnum16,
+		"1",                      //"enum8String":      chEnum8,
+		"1000",                   //"enum16String":     chEnum16,
 	}
 
 	resultRow, err := fullTypeClickhouseStructure.ConvertJsonRow(columns, row)

@@ -3,6 +3,7 @@ package inserter
 import (
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -220,13 +221,31 @@ func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interfac
 				return nil, ErrCantParseToClickhouseType
 			}
 		case chDateTime64:
-			switch el.(type) {
+			switch el := el.(type) {
+			case string:
+				t, err := time.ParseInLocation("2006-01-02 15:04:05.999", el, time.Local)
+				if err != nil {
+					return nil, errors.Wrap(err, "convert to clickhouse type")
+				}
+				t = t.Local()
+				resEl = t
+			default:
+				return nil, ErrCantParseToClickhouseType
+			}
+		case chEnum8:
+			switch el := el.(type) {
+			case json.Number:
+				val, err := el.Int64()
+				if err != nil {
+					return nil, errors.Wrap(err, "convert to clickhouse type")
+				}
+				resEl = int8(val)
 			case string:
 				resEl = el
 			default:
 				return nil, ErrCantParseToClickhouseType
 			}
-		case chEnum8, chEnum16:
+		case chEnum16:
 			switch el := el.(type) {
 			case json.Number:
 				val, err := el.Int64()
