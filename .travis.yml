@@ -1,6 +1,8 @@
 language: go
 go:
   - 1.14
+before_install:
+  - sudo apt-get -y install clickhouse-server clickhouse-client
 services:
   - clickhouse
 env:
