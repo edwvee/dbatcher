@@ -2,6 +2,7 @@ package inserter
 
 import (
 	"database/sql"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -58,7 +59,7 @@ func init() {
 	if dsn == "" {
 		return
 	}
-	script, err := os.ReadFile("../../scripts/clickhouse_test_table.sql")
+	script, err := ioutil.ReadFile("../../scripts/clickhouse_test_table.sql")
 	if err != nil {
 		panic(err)
 	}
