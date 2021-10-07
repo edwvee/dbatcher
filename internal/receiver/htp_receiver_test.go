@@ -183,7 +183,24 @@ func TestHTTPReceiverByRequests(t *testing.T) {
 	if code := response.StatusCode(); code != 400 {
 		t.Error("should be error")
 	}
-	//TODO: make successfull requests and test inserter's data
+
+	//10 succesfull inserts
+	request.SetBodyRaw([]byte("[[2,3]]"))
+	for i := 0; i < 10; i++ {
+		err = client.Do(request, response)
+		if err != nil {
+			t.Errorf("shouldn't be an error: %s", err.Error())
+		}
+		if code := response.StatusCode(); code != 200 {
+			t.Error("should be error")
+		}
+	}
+	time.Sleep(time.Millisecond * 100)
+	data := ins.TakeSlice()
+	if len(data) != 10 {
+		t.Errorf("send 10 records, got %d", len(data))
+	}
+
 }
 
 //freezed cause there is no way to shutdown fasthttp.Server with idle connectios yet

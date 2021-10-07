@@ -3,7 +3,6 @@ package inserter
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"log"
 	"net/url"
 	"strings"
@@ -11,10 +10,12 @@ import (
 
 	_ "github.com/ClickHouse/clickhouse-go"
 	"github.com/edwvee/dbatcher/internal/table"
+	"github.com/pkg/errors"
 )
 
 var (
 	ErrNoDatabaseInDsnOrInTableName = errors.New("no database in dsn or in table name")
+	ErrNoSuchTableStructure         = errors.New("no column info for a table")
 )
 
 type ClickHouseInserter struct {
@@ -102,7 +103,6 @@ func (ci ClickHouseInserter) makeSql(t *table.Table) string {
 }
 
 func (ci ClickHouseInserter) getTableStructure(t *table.Table) (structure clickhouseStructure, err error) {
-	//TODO: if no columns - return fuck you
 	var database, table string
 	tName := t.GetTableName()
 	if pos := strings.Index(tName, "."); pos != -1 {
@@ -123,7 +123,7 @@ func (ci ClickHouseInserter) getTableStructure(t *table.Table) (structure clickh
 	sqlStr := "SELECT name, type FROM system.columns WHERE database = ? AND `table` = ?"
 	rows, err := ci.db.Query(sqlStr, database, table)
 	if err != nil {
-		return structure, err
+		return structure, errors.Wrapf(err, "get table structure for %s:", t.GetKey())
 	}
 	defer rows.Close()
 
@@ -138,6 +138,9 @@ func (ci ClickHouseInserter) getTableStructure(t *table.Table) (structure clickh
 		}
 		structure[column] = chType
 	}
+	if len(structure) == 0 {
+		err = ErrNoSuchTableStructure
+	}
 
-	return structure, err
+	return structure, errors.Wrapf(err, "get table structure for %s:", t.GetKey())
 }

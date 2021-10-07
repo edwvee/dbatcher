@@ -24,7 +24,7 @@ type TableSignature struct {
 func NewTableSignature(tableName, fields string) TableSignature {
 	return TableSignature{
 		tableName: tableName,
-		fields:    fields,
+		fields:    strings.Replace(fields, " ", "", -1),
 	}
 }
 

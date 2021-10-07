@@ -93,8 +93,19 @@ func TestClickhouseGetTableStructure(t *testing.T) {
 		InsertTimeoutMs: 30000,
 	})
 	ts := table.NewTableSignature(tableName, fields)
-	table := table.NewTable(ts)
-	structure, err := ins.getTableStructure(table)
+	tbl := table.NewTable(ts)
+	structure, err := ins.getTableStructure(tbl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(fullTypeClickhouseStructure, structure) {
+		t.Errorf("table structures are not equal, want %v, got %v", fullTypeClickhouseStructure, structure)
+	}
+
+	//test when no database in table name
+	ts = table.NewTableSignature("dbatcher_test_table", fields)
+	tbl = table.NewTable(ts)
+	structure, err = ins.getTableStructure(tbl)
 	if err != nil {
 		t.Fatal(err)
 	}

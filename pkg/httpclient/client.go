@@ -80,11 +80,10 @@ func (c Client) MakeUrl(table, fields string, timeoutMs, maxRows uint, sync, per
 		persistStr = "&persist=1"
 	}
 	return fmt.Sprintf(
-		"%s/?table=%s&fields=%s&max_rows=%d&timeout_ms=%d%s",
+		"%s/?table=%s&fields=%s&timeout_ms=%d&max_rows=%d%s",
 		c.serverAddress, url.QueryEscape(table), url.QueryEscape(fields),
-		maxRows, timeoutMs, persistStr,
+		timeoutMs, maxRows, persistStr,
 	)
-
 }
 
 func (c *Client) Close() error {
