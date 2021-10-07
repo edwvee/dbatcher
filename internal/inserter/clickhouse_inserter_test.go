@@ -2,6 +2,7 @@ package inserter
 
 import (
 	"database/sql"
+	"errors"
 	"io/ioutil"
 	"log"
 	"math"
@@ -290,5 +291,82 @@ func TestClickshouseInsert(t *testing.T) {
 	}
 	if got, want := targetTime.dateTimeString.Format("2006-01-02 15:04:05"), now.Format("2006-01-02 15:04:05"); got != want {
 		t.Errorf("dateTimeString field failed: got %s, want %s", got, want)
+	}
+}
+
+func TestNoSuchTableStructure(t *testing.T) {
+	dsn := os.Getenv(clickhouseDsnKey)
+	if dsn == "" {
+		t.SkipNow()
+	}
+
+	ins := ClickHouseInserter{}
+	ins.Init(Config{
+		Type:            "clickhouse",
+		Dsn:             dsn,
+		MaxConnections:  2,
+		InsertTimeoutMs: 30000,
+	})
+	ts := table.NewTableSignature("not_existing", "field1")
+	table := table.NewTable(ts)
+	err := ins.Insert(table)
+	if !errors.Is(err, ErrNoSuchTableStructure) {
+		t.Error("should get ErrNoSuchTableStructure")
+	}
+}
+
+func TestNoDatabaseInDsnOrTableName(t *testing.T) {
+	dsn := os.Getenv(clickhouseDsnKey)
+	if dsn == "" {
+		t.SkipNow()
+	}
+	dsn = strings.Replace(dsn, "database=", "batadase=", -1)
+
+	ins := ClickHouseInserter{}
+	ins.Init(Config{
+		Type:            "clickhouse",
+		Dsn:             dsn,
+		MaxConnections:  2,
+		InsertTimeoutMs: 30000,
+	})
+	ts := table.NewTableSignature("not_existing", "field1")
+	table := table.NewTable(ts)
+	err := ins.Insert(table)
+	if !errors.Is(err, ErrNoDatabaseInDsnOrInTableName) {
+		t.Error("should get ErrNoDatabaseInDsnOrInTableName")
+	}
+}
+
+func TestInvalidConnect(t *testing.T) {
+	dsn := "gfdgfdfggfdm"
+	ins := ClickHouseInserter{}
+	err := ins.Init(Config{
+		Type:            "clickhouse",
+		Dsn:             dsn,
+		MaxConnections:  2,
+		InsertTimeoutMs: 30000,
+	})
+	t.Log(err)
+	if err == nil {
+		t.Error("should be an error")
+	}
+
+	dsn = "tcp://127.0.0.1:22?user=default"
+	ins = ClickHouseInserter{}
+	err = ins.Init(Config{
+		Type:            "clickhouse",
+		Dsn:             dsn,
+		MaxConnections:  2,
+		InsertTimeoutMs: 30000,
+	})
+	t.Log(err)
+	if err == nil {
+		t.Error("should be an error")
+	}
+
+	_, err = connectDB("dsd", "fdf", 11)
+	t.Log(err)
+	if err == nil {
+		t.Error("should be an error")
 	}
 }

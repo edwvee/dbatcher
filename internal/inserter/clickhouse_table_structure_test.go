@@ -96,7 +96,7 @@ func TestClickhouseTableStructureConvertJsonRowPositive(t *testing.T) {
 		"string",                                            //"stringString":     chString,
 		"fixedString",                                       //"stringFStrinF":    chFixedString,
 		json.Number("1632949379"),                           //"dateNumber":       chDate,
-		json.Number("1632949379"),                           //"dateTimeNumber":   chDateTime,
+		"1632949379",                                        //"dateTimeNumber":   chDateTime,
 		"2021-09-29",                                        //"dateString":       chDate,
 		"2021-09-29 01:52:16",                               //"dateTimeString":   chDateTime,
 		"2021-09-29 01:52:16.999",                           //"dateTime64String": chDateTime64,
@@ -195,17 +195,17 @@ func TestClickhouseTableStructureConvertJsonRowNegative(t *testing.T) {
 		}
 	}
 	additionalCases := map[string]interface{}{
-
-		"uint8Number":   []interface{}{},
-		"uint16Number":  []interface{}{},
-		"uint32Number":  []interface{}{},
-		"uint64Number":  []interface{}{},
-		"int8Number":    []interface{}{},
-		"int16Number":   []interface{}{},
-		"int32Number":   []interface{}{},
-		"int64Number":   []interface{}{},
-		"float32Number": []interface{}{},
-		"float64Number": []interface{}{},
+		"uint8Number":      []interface{}{},
+		"uint16Number":     []interface{}{},
+		"uint32Number":     []interface{}{},
+		"uint64Number":     []interface{}{},
+		"int8Number":       []interface{}{},
+		"int16Number":      []interface{}{},
+		"int32Number":      []interface{}{},
+		"int64Number":      []interface{}{},
+		"float32Number":    []interface{}{},
+		"float64Number":    []interface{}{},
+		"dateTime64String": "2323.434",
 	}
 	for column, value := range additionalCases {
 		columns := []string{column}
