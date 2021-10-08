@@ -15,39 +15,46 @@ const maxTableManagerStopTime = 5 * time.Second
 //not const for speedind up tests
 var stopUnusedManagersInterval = 10 * time.Second
 
+//ErrTableManagerDidntStopInTime means table manager didn't stop in time
 var ErrTableManagerDidntStopInTime = errors.New("didn't stop in time")
 
-type TableManagerHolder struct {
+//Holder creates table managers, holds pointers to them,
+//stops them when they are not used for a long time.
+//Serves as frontend to table managers.
+type Holder struct {
 	inserters        map[string]inserter.Inserter
 	managers         map[string]*TableManager
 	lastManagerVisit map[string]time.Time
 	managersMut      sync.Mutex
 }
 
-func NewTableManagerHolder(errChan chan error, inserters map[string]inserter.Inserter) *TableManagerHolder {
-	return &TableManagerHolder{
+//NewHolder creates new holder
+func NewHolder(errChan chan error, inserters map[string]inserter.Inserter) *Holder {
+	return &Holder{
 		inserters:        inserters,
 		managers:         map[string]*TableManager{},
 		lastManagerVisit: map[string]time.Time{},
 	}
 }
 
-//TODO: validation
-func (h *TableManagerHolder) Append(ts *table.TableSignature, config TableManagerConfig, sync bool, rowsJson []byte) error {
+//Append searches for an existing table manager or creates it,
+//then calls it's AppendRowsToTable. If sync is true, always creates a new manager
+//and instantly calls DoInsert.
+func (h *Holder) Append(ts *table.Signature, config Config, sync bool, rowsJSON []byte) error {
 	if !sync {
 		manager := h.getTableManager(ts, config)
-		return manager.AppendRowsToTable(rowsJson)
+		return manager.AppendRowsToTable(rowsJSON)
 	}
 
 	//not optimized due sync is debug feature
 	manager := NewTableManager(ts, config, h.inserters)
-	if err := manager.AppendRowsToTable(rowsJson); err != nil {
+	if err := manager.AppendRowsToTable(rowsJSON); err != nil {
 		return err
 	}
 	return manager.DoInsert()
 }
 
-func (h *TableManagerHolder) getTableManager(ts *table.TableSignature, config TableManagerConfig) *TableManager {
+func (h *Holder) getTableManager(ts *table.Signature, config Config) *TableManager {
 	key := ts.GetKey()
 
 	h.managersMut.Lock()
@@ -68,11 +75,13 @@ func (h *TableManagerHolder) getTableManager(ts *table.TableSignature, config Ta
 	return manager
 }
 
-func (h *TableManagerHolder) StopUnusedManagers() {
+//StopUnusedManagers starts a goroutine which stops unused
+//table managers periodically.
+func (h *Holder) StopUnusedManagers() {
 	go h.stopUnusedManagers()
 }
 
-func (h *TableManagerHolder) stopUnusedManagers() {
+func (h *Holder) stopUnusedManagers() {
 	ticker := time.NewTicker(stopUnusedManagersInterval)
 	for range ticker.C {
 		unusedManagers := []*TableManager{}
@@ -93,7 +102,9 @@ func (h *TableManagerHolder) stopUnusedManagers() {
 	}
 }
 
-func (h *TableManagerHolder) StopTableManagers() []error {
+//StopTableManagers stops existing table managers with timeout.
+//If one of them didn't stop in time or has insert errors returns them.
+func (h *Holder) StopTableManagers() []error {
 	h.managersMut.Lock()
 	errs := []error{}
 	errChan := make(chan error)

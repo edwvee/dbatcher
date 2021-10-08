@@ -6,7 +6,7 @@ import (
 )
 
 func TestTableSignatureValidate(t *testing.T) {
-	ts := NewTableSignature("", "")
+	ts := NewSignature("", "")
 	if err := ts.Validate(); !errors.Is(err, ErrEmptyTableName) {
 		t.Errorf("when tableName is %s there should be ErrEmptyTableName", ts.tableName)
 	}

@@ -8,22 +8,27 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/ClickHouse/clickhouse-go"
+	_ "github.com/ClickHouse/clickhouse-go" //golint: ClickHouseInserter won't really work without it
 	"github.com/edwvee/dbatcher/internal/table"
 	"github.com/pkg/errors"
 )
 
 var (
+	//ErrNoDatabaseInDsnOrInTableName is returned when inserter tries to get table's structure
+	//and there is need in database's name and it can't be found
 	ErrNoDatabaseInDsnOrInTableName = errors.New("no database in dsn or in table name")
-	ErrNoSuchTableStructure         = errors.New("no column info for a table")
+	//ErrNoSuchTableStructure means there are no column configuration for such database and table
+	ErrNoSuchTableStructure = errors.New("no column info for a table")
 )
 
+//ClickHouseInserter inserts rows into ClickHouse
 type ClickHouseInserter struct {
 	db            *sql.DB
 	databaseName  string
 	insertTimeout time.Duration
 }
 
+//Init setups ClickHouseInserter and connects to ClickHouse
 func (ci *ClickHouseInserter) Init(config Config) error {
 	db, err := connectDB(config.Type, config.Dsn, config.MaxConnections)
 	if err != nil {
@@ -40,8 +45,9 @@ func (ci *ClickHouseInserter) Init(config Config) error {
 	return nil
 }
 
+//Insert gets table structure and inserts
 func (ci ClickHouseInserter) Insert(t *table.Table) error {
-	sqlStr := ci.makeSql(t)
+	sqlStr := ci.makeSQL(t)
 	start := time.Now()
 	if err := ci.insert(t, sqlStr); err != nil {
 		return err
@@ -79,7 +85,7 @@ func (ci ClickHouseInserter) insert(t *table.Table, sqlStr string) error {
 	defer stmt.Close()
 
 	for row := t.GetNextRow(); row != nil; row = t.GetNextRow() {
-		converted, err := structure.ConvertJsonRow(fields, row)
+		converted, err := structure.ConvertJSONRow(fields, row)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -96,7 +102,7 @@ func (ci ClickHouseInserter) insert(t *table.Table, sqlStr string) error {
 	return tx.Commit()
 }
 
-func (ci ClickHouseInserter) makeSql(t *table.Table) string {
+func (ci ClickHouseInserter) makeSQL(t *table.Table) string {
 	//TODO: question marks
 	return "INSERT INTO " + t.GetTableName() +
 		"(" + t.GetFields() + ") VALUES (?,?,?,?)"

@@ -30,11 +30,15 @@ const (
 	chEnum16      = clickhouseType("Enum16")
 )
 
+//clickhouseStructure is clickhouse's table structure (columns)
 type clickhouseStructure map[string]clickhouseType
 
+//ErrCantParseToClickhouseType means type of value from JSON can't be converted into
+//clickhouse's column type
 var ErrCantParseToClickhouseType = errors.New("can't parse clickhouse type")
 
-func (s clickhouseStructure) ConvertJsonRow(columns []string, jsonRow []interface{}) (row []interface{}, err error) {
+//ConvertJSONRow converts jsonRow according columns to types that fit clickhouse driver and table in clickhouse
+func (s clickhouseStructure) ConvertJSONRow(columns []string, jsonRow []interface{}) (row []interface{}, err error) {
 	row = make([]interface{}, 0, len(jsonRow))
 	for i, el := range jsonRow {
 		columnType := s[columns[i]]

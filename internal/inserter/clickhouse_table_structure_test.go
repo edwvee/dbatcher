@@ -141,7 +141,7 @@ func TestClickhouseTableStructureConvertJsonRowPositive(t *testing.T) {
 		"1000",                   //"enum16String":     chEnum16,
 	}
 
-	resultRow, err := fullTypeClickhouseStructure.ConvertJsonRow(columns, row)
+	resultRow, err := fullTypeClickhouseStructure.ConvertJSONRow(columns, row)
 	if err != nil {
 		t.Error(err)
 		t.Fail()
@@ -186,7 +186,7 @@ func TestClickhouseTableStructureConvertJsonRowNegative(t *testing.T) {
 	for column, value := range invalidCases {
 		columns := []string{column}
 		row := []interface{}{value}
-		resultRow, err := fullTypeClickhouseStructure.ConvertJsonRow(columns, row)
+		resultRow, err := fullTypeClickhouseStructure.ConvertJSONRow(columns, row)
 		if resultRow != nil {
 			t.Fatalf("result row should be nill; column %s, value %x", column, value)
 		}
@@ -210,7 +210,7 @@ func TestClickhouseTableStructureConvertJsonRowNegative(t *testing.T) {
 	for column, value := range additionalCases {
 		columns := []string{column}
 		row := []interface{}{value}
-		resultRow, err := fullTypeClickhouseStructure.ConvertJsonRow(columns, row)
+		resultRow, err := fullTypeClickhouseStructure.ConvertJSONRow(columns, row)
 		if resultRow != nil {
 			t.Fatalf("result row should be nill; column %s, value %x", column, value)
 		}

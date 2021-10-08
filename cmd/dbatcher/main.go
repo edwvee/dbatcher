@@ -28,7 +28,7 @@ func main() {
 
 	inserters := makeInserters(c)
 	errChan := make(chan error)
-	tableManagerHolder := tablemanager.NewTableManagerHolder(errChan, inserters)
+	tableManagerHolder := tablemanager.NewHolder(errChan, inserters)
 	tableManagerHolder.StopUnusedManagers()
 	receivers := makeAndStartReceivers(c, errChan, tableManagerHolder)
 
@@ -69,7 +69,7 @@ func makeInserters(c config) map[string]inserter.Inserter {
 	return inserters
 }
 
-func makeAndStartReceivers(c config, errChan chan error, tableManagerHolder *tablemanager.TableManagerHolder) map[string]receiver.Receiver {
+func makeAndStartReceivers(c config, errChan chan error, tableManagerHolder *tablemanager.Holder) map[string]receiver.Receiver {
 	receivers := map[string]receiver.Receiver{}
 	for name, config := range c.Receivers {
 		log.Printf("creating receiver %s", name)
@@ -102,7 +102,7 @@ func waitForTermination(errChan chan error) {
 	}
 }
 
-func terminate(receivers map[string]receiver.Receiver, tableManagerHolder *tablemanager.TableManagerHolder) {
+func terminate(receivers map[string]receiver.Receiver, tableManagerHolder *tablemanager.Holder) {
 	for name, rec := range receivers {
 		log.Printf("stoping receiver %s", name)
 		err := rec.Stop()

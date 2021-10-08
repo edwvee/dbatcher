@@ -46,7 +46,7 @@ func TestNewTableManager(t *testing.T) {
 
 func TestShouldAppendWhenTooMuchRows(t *testing.T) {
 	const maxRows = 1000
-	tmc := NewTableManagerConfig(100000000, maxRows, false)
+	tmc := NewConfig(100000000, maxRows, false)
 	si := &selfSliceInserter{}
 	si.Init(inserter.Config{})
 	inserters := map[string]inserter.Inserter{"self slice inserter": si}
@@ -67,7 +67,7 @@ func TestShouldAppendWhenTooMuchRows(t *testing.T) {
 }
 
 func TestShouldReturnMultiError(t *testing.T) {
-	tmc := NewTableManagerConfig(1000, 100, false)
+	tmc := NewConfig(1000, 100, false)
 	inserters := map[string]inserter.Inserter{"1": &errorInserter{}, "2": &errorInserter{}}
 	tm := NewTableManager(&defaultTestTableSignature, tmc, inserters)
 	err := tm.AppendRowsToTable([]byte("[[1,2,3]]"))

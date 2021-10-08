@@ -13,8 +13,8 @@ var defaultTestInserters = map[string]inserter.Inserter{
 	"dummy": &inserter.DummyInserter{},
 }
 var defaultTestErrChan = make(chan error)
-var defaultTestTableSignature = table.NewTableSignature("db.`table`", "field1, field2, field3")
-var defaultTestTableManagerConfig = NewTableManagerConfig(1000, 100, false)
+var defaultTestTableSignature = table.NewSignature("db.`table`", "field1, field2, field3")
+var defaultTestTableManagerConfig = NewConfig(1000, 100, false)
 
 type selfSliceInserter struct {
 	data    []interface{}

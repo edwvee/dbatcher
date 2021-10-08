@@ -10,17 +10,20 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+//ClientConfig is a config for cliet
 type ClientConfig struct {
 	ServerAddress string
 	ReadTimeout   time.Duration
 	WriteTimeout  time.Duration
 }
 
+//Client is a dbatcher's HTTP client
 type Client struct {
 	client        *fasthttp.Client
 	serverAddress string
 }
 
+//NewClient returns configured client
 func NewClient(config ClientConfig) *Client {
 	return &Client{
 		client: &fasthttp.Client{
@@ -32,12 +35,10 @@ func NewClient(config ClientConfig) *Client {
 	}
 }
 
-//TODO: full documentation
-//Send
-//rows must be slice of slices of primitives like int,float or string;
-//if int is to big - better convert it to string
+//Send sends table parameteres and rows to dbatcher.
+//Rows must be slice of slices of primitives like int, float or string
 func (c Client) Send(table, fields string, timeoutMs, maxRows uint, sync, persist bool, rows interface{}) error {
-	url := c.MakeUrl(table, fields, timeoutMs, maxRows, sync, persist)
+	url := c.makeURL(table, fields, timeoutMs, maxRows, sync, persist)
 	data, err := jsoniter.Marshal(rows)
 	if err != nil {
 		return errors.Wrap(err, "dbatcher http client")
@@ -68,7 +69,7 @@ func (c Client) Send(table, fields string, timeoutMs, maxRows uint, sync, persis
 	return nil
 }
 
-func (c Client) MakeUrl(table, fields string, timeoutMs, maxRows uint, sync, persist bool) string {
+func (c Client) makeURL(table, fields string, timeoutMs, maxRows uint, sync, persist bool) string {
 	if sync {
 		return fmt.Sprintf(
 			"%s/?table=%s&fields=%s&sync=1",
@@ -86,6 +87,7 @@ func (c Client) MakeUrl(table, fields string, timeoutMs, maxRows uint, sync, per
 	)
 }
 
+//Close closes connection to dbatcher
 func (c *Client) Close() error {
 	c.client.CloseIdleConnections()
 	return nil

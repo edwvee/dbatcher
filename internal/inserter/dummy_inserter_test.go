@@ -21,7 +21,7 @@ func TestDummyInsert(t *testing.T) {
 	if err := ins.Init(Config{}); err != nil {
 		t.Fatal(err)
 	}
-	ts := table.NewTableSignature("table", "field1")
+	ts := table.NewSignature("table", "field1")
 	table := table.NewTable(ts)
 	if err := table.AppendRows([]byte("[[1],[2],[3]]")); err != nil {
 		t.Fatal(err)

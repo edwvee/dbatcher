@@ -12,6 +12,8 @@ import (
 	"github.com/edwvee/dbatcher/internal/table"
 )
 
+//TableManager is responsible for a table and calling inserters on it.
+//Serves as frontend to a table
 type TableManager struct {
 	table     *table.Table
 	tableMut  sync.Mutex
@@ -24,7 +26,8 @@ type TableManager struct {
 	stopChannel chan struct{}
 }
 
-func NewTableManager(ts *table.TableSignature, config TableManagerConfig, inserters map[string]inserter.Inserter) *TableManager {
+//NewTableManager returns configured table manager
+func NewTableManager(ts *table.Signature, config Config, inserters map[string]inserter.Inserter) *TableManager {
 	return &TableManager{
 		table:       table.NewTable(*ts),
 		rowsJsons:   []byte{},
@@ -36,14 +39,18 @@ func NewTableManager(ts *table.TableSignature, config TableManagerConfig, insert
 	}
 }
 
-func (tm *TableManager) UpdateConfig(config TableManagerConfig) {
+//UpdateConfig updates maxRows and timeoutMs from config.
+//Thread safe
+func (tm *TableManager) UpdateConfig(config Config) {
 	atomic.StoreInt64(&tm.maxRows, int64(config.MaxRows))
 	atomic.StoreInt64(&tm.timeoutMs, config.TimeoutMs)
 }
 
-func (tm *TableManager) AppendRowsToTable(rowsJson []byte) error {
+//AppendRowsToTable is a frontend for table's AppendRows.
+//If maxRows is reached sends signal to start inserting (see Run)
+func (tm *TableManager) AppendRowsToTable(rowsJSON []byte) error {
 	tm.tableMut.Lock()
-	err := tm.table.AppendRows(rowsJson)
+	err := tm.table.AppendRows(rowsJSON)
 	tm.tableMut.Unlock()
 	if tm.isTooManyRows() {
 		log.Printf("reached max rows for table %s", tm.table.GetKey())
@@ -64,6 +71,8 @@ func (tm *TableManager) isTooManyRows() bool {
 	return int64(rowsLen) >= atomic.LoadInt64(&tm.maxRows)
 }
 
+//Run is manager's main loop where is waiting for time limit
+//or a signal to insert. The place where inserts should be fired
 func (tm *TableManager) Run() {
 	timer := tm.newTimer()
 	for {
@@ -96,7 +105,7 @@ func (tm *TableManager) newTimer() *time.Timer {
 	return time.NewTimer(time.Duration(timeoutMs) * time.Millisecond)
 }
 
-//TODO: remove do lock cause it'll freeze request (or not)
+//DoInsert creates a new table and calls inserters on the old
 func (tm *TableManager) DoInsert() (err error) {
 	if tm.isTableEmpty() {
 		return nil
@@ -124,7 +133,7 @@ func (tm *TableManager) isTableEmpty() bool {
 }
 
 func (tm *TableManager) getTableAndMakeNew() *table.Table {
-	ts := tm.table.TableSignature
+	ts := tm.table.Signature
 	newTable := table.NewTable(ts)
 
 	var oldTable *table.Table
@@ -156,6 +165,8 @@ func (tm *TableManager) insertConcurrently() error {
 	return nil
 }
 
+//Stop sends a signal in main loop to insert,
+//waits for response (which means the main loop is finished)
 func (tm *TableManager) Stop() {
 	key := tm.table.GetKey()
 	log.Printf("stopping table manager for %s", key)

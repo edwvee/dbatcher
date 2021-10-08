@@ -11,8 +11,8 @@ func TestTableManagerConfig(t *testing.T) {
 	maxRows := int64(1000)
 	persist := false
 
-	config := NewTableManagerConfig(timeoutMs, maxRows, persist)
-	expectedConfig := TableManagerConfig{
+	config := NewConfig(timeoutMs, maxRows, persist)
+	expectedConfig := Config{
 		TimeoutMs: timeoutMs,
 		MaxRows:   maxRows,
 		Persist:   persist,
@@ -37,7 +37,7 @@ func TestTableManagerConfig(t *testing.T) {
 	config.MaxRows = 1000
 	config.TimeoutMs = 1000
 	config.Persist = true
-	if err := config.Validate(); !errors.Is(err, ErrPersintNotFalse) {
+	if err := config.Validate(); !errors.Is(err, ErrPersistNotFalse) {
 		t.Error(err)
 	}
 }

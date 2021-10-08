@@ -93,7 +93,7 @@ func TestClickhouseGetTableStructure(t *testing.T) {
 		MaxConnections:  2,
 		InsertTimeoutMs: 30000,
 	})
-	ts := table.NewTableSignature(tableName, fields)
+	ts := table.NewSignature(tableName, fields)
 	tbl := table.NewTable(ts)
 	structure, err := ins.getTableStructure(tbl)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestClickhouseGetTableStructure(t *testing.T) {
 	}
 
 	//test when no database in table name
-	ts = table.NewTableSignature("dbatcher_test_table", fields)
+	ts = table.NewSignature("dbatcher_test_table", fields)
 	tbl = table.NewTable(ts)
 	structure, err = ins.getTableStructure(tbl)
 	if err != nil {
@@ -163,7 +163,7 @@ func TestClickshouseInsert(t *testing.T) {
 		MaxConnections:  2,
 		InsertTimeoutMs: 30000,
 	})
-	ts := table.NewTableSignature(tableName, fields)
+	ts := table.NewSignature(tableName, fields)
 	table := table.NewTable(ts)
 	now := time.Now()
 	rows := [][]interface{}{{
@@ -307,7 +307,7 @@ func TestNoSuchTableStructure(t *testing.T) {
 		MaxConnections:  2,
 		InsertTimeoutMs: 30000,
 	})
-	ts := table.NewTableSignature("not_existing", "field1")
+	ts := table.NewSignature("not_existing", "field1")
 	table := table.NewTable(ts)
 	err := ins.Insert(table)
 	if !errors.Is(err, ErrNoSuchTableStructure) {
@@ -329,7 +329,7 @@ func TestNoDatabaseInDsnOrTableName(t *testing.T) {
 		MaxConnections:  2,
 		InsertTimeoutMs: 30000,
 	})
-	ts := table.NewTableSignature("not_existing", "field1")
+	ts := table.NewSignature("not_existing", "field1")
 	table := table.NewTable(ts)
 	err := ins.Insert(table)
 	if !errors.Is(err, ErrNoDatabaseInDsnOrInTableName) {

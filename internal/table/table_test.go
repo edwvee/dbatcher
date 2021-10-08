@@ -10,14 +10,14 @@ import (
 )
 
 func getTestTable() *Table {
-	ts := NewTableSignature("test_table", "field_1, field_2, field_3")
+	ts := NewSignature("test_table", "field_1, field_2, field_3")
 	return NewTable(ts)
 }
 
 func TestTableSignatureGetKey(t *testing.T) {
 	name := "database.table"
 	fields := "field1,field2"
-	ts := NewTableSignature(name, fields)
+	ts := NewSignature(name, fields)
 	wantKey := "database.table|field1,field2"
 	if gotKey := ts.GetKey(); wantKey != gotKey {
 		t.Errorf("TableSignature GetKey: want %s, got %s", wantKey, gotKey)
@@ -31,12 +31,12 @@ func TestAppendRowsFullPositive(t *testing.T) {
 		{"43434", json.Number(strconv.Itoa(54)), "ererr"},
 		{"gfhfdh", json.Number(strconv.Itoa(5864)), "ghjkgjfg"},
 	}
-	rowsJson, err := json.Marshal(values)
+	rowsJSON, err := json.Marshal(values)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = table.AppendRows(rowsJson)
+	err = table.AppendRows(rowsJSON)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -79,13 +79,13 @@ func TestAppendRowsFullNegative(t *testing.T) {
 		{"43434", json.Number(strconv.Itoa(54)), "ererr"},
 		{"gfhfdh", "ghjkgjfg"},
 	}
-	rowsJson, err := json.Marshal(values)
+	rowsJSON, err := json.Marshal(values)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
 
-	err = table.AppendRows(rowsJson)
+	err = table.AppendRows(rowsJSON)
 	if !errors.Is(err, ErrWrongRowLen) {
 		t.Fatal(err)
 	}
@@ -105,14 +105,14 @@ func TestAppendRowsFullNegative(t *testing.T) {
 		{"43434", json.Number(strconv.Itoa(54)), "ererr"},
 		{"gfhfdh", "ghjkgjfg"},
 	}
-	rowsJson, err = json.Marshal(values)
+	rowsJSON, err = json.Marshal(values)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
-	rowsJson[0] = '{'
+	rowsJSON[0] = '{'
 
-	err = table.AppendRows(rowsJson)
+	err = table.AppendRows(rowsJSON)
 	if err == nil || !strings.Contains(err.Error(), "json parsing") {
 		t.Error("should be error about parsing json")
 	}
@@ -121,7 +121,7 @@ func TestAppendRowsFullNegative(t *testing.T) {
 func TestObvious(t *testing.T) {
 	name := "database.table"
 	fields := "field1,field2"
-	ts := NewTableSignature(name, fields)
+	ts := NewSignature(name, fields)
 	tbl := NewTable(ts)
 	if nameFromTbl := tbl.GetTableName(); nameFromTbl != name {
 		t.Errorf("get table name: want %s, got %s", name, nameFromTbl)

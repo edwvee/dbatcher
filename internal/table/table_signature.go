@@ -8,34 +8,43 @@ import (
 )
 
 var (
-	ErrEmptyTableName           = errors.New("empty table name")
-	ErrEmptyTableNamePart       = errors.New("empty table name part")
+	//ErrEmptyTableName means table's name is empty
+	ErrEmptyTableName = errors.New("empty table name")
+	//ErrEmptyTableNamePart means there are empty table's name's part. E.g., "db..name", "db.", "db.name.""
+	ErrEmptyTableNamePart = errors.New("empty table name part")
+	//ErrTableNameInvalidBacktick means there is no closing/opening backtick it table's name
 	ErrTableNameInvalidBacktick = errors.New("table name has invalid backtick")
-	ErrEmptyFields              = errors.New("empty  fields")
-	ErrEmptyField               = errors.New("fields contain empty field (check commas)")
-	ErrFieldInvalidBacktick     = errors.New("one of the fields has invalid backtick")
+	//ErrEmptyFields means fields are empty
+	ErrEmptyFields = errors.New("empty  fields")
+	//ErrEmptyField one of fields is empty ("field1,,field2")
+	ErrEmptyField = errors.New("fields contain empty field (check commas)")
+	//ErrFieldInvalidBacktick means there is no closing/opening backtick it fields
+	ErrFieldInvalidBacktick = errors.New("one of the fields has invalid backtick")
 )
 
-type TableSignature struct {
+//Signature is table's name and fields
+type Signature struct {
 	tableName string
 	fields    string
 }
 
-func NewTableSignature(tableName, fields string) TableSignature {
-	return TableSignature{
+//NewSignature creates new TableSignature from name and fields
+func NewSignature(tableName, fields string) Signature {
+	return Signature{
 		tableName: tableName,
 		fields:    strings.Replace(fields, " ", "", -1),
 	}
 }
 
-func (ts TableSignature) Validate() error {
+//Validate validates table signature
+func (ts Signature) Validate() error {
 	if err := ts.validateTableName(); err != nil {
 		return err
 	}
 	return ts.validateFields()
 }
 
-func (ts TableSignature) validateTableName() error {
+func (ts Signature) validateTableName() error {
 	if ts.tableName == "" {
 		return ErrEmptyTableName
 	}
@@ -52,7 +61,7 @@ func (ts TableSignature) validateTableName() error {
 	return nil
 }
 
-func (ts TableSignature) validateFields() error {
+func (ts Signature) validateFields() error {
 	if ts.fields == "" {
 		return ErrEmptyFields
 	}
@@ -69,7 +78,8 @@ func (ts TableSignature) validateFields() error {
 	return nil
 }
 
-func (ts TableSignature) GetKey() string {
+//GetKey returns a key from table name and fields to identify table
+func (ts Signature) GetKey() string {
 	return fmt.Sprintf("%s|%s", ts.tableName, ts.fields)
 }
 

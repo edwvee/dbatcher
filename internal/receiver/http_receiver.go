@@ -11,16 +11,20 @@ import (
 
 const maxShutdownTime = 2 * time.Second
 
-var ErrDidntShutdownInTime = errors.New("HttpReceiver: server didn't shutdown in time")
+//ErrDidntShutdownInTime means that HTTPReceiver didn't process all requests and
+//closed all connections in time
+var ErrDidntShutdownInTime = errors.New("HTTPReceiver: server didn't shutdown in time")
 
+//HTTPReceiver receives data via HTTP
 type HTTPReceiver struct {
 	bind     string
 	server   *fasthttp.Server
 	errChan  chan error
-	tMHolder *tablemanager.TableManagerHolder
+	tMHolder *tablemanager.Holder
 }
 
-func (r *HTTPReceiver) Init(config Config, errChan chan error, tMHolder *tablemanager.TableManagerHolder) error {
+//Init configures HTTPReceiver
+func (r *HTTPReceiver) Init(config Config, errChan chan error, tMHolder *tablemanager.Holder) error {
 	r.bind = config.Bind
 	r.errChan = errChan
 	r.tMHolder = tMHolder
@@ -37,6 +41,7 @@ func (r *HTTPReceiver) Init(config Config, errChan chan error, tMHolder *tablema
 	return nil
 }
 
+//Receive starts goroutine with a listening HTTP server
 func (r *HTTPReceiver) Receive() {
 	go r.receive()
 }
@@ -58,13 +63,13 @@ func (r HTTPReceiver) handle(ctx *fasthttp.RequestCtx) {
 
 	t := string(args.Peek("table"))
 	f := string(args.Peek("fields"))
-	ts := table.NewTableSignature(t, f)
+	ts := table.NewSignature(t, f)
 	if err := ts.Validate(); err != nil {
 		ctx.Error(err.Error(), 400)
 		return
 	}
 
-	tmc := tablemanager.TableManagerConfig{}
+	tmc := tablemanager.Config{}
 	sync := args.GetBool("sync")
 	if !sync {
 		timeoutMs, err := args.GetUint("timeout_ms")
@@ -78,7 +83,7 @@ func (r HTTPReceiver) handle(ctx *fasthttp.RequestCtx) {
 			return
 		}
 		persist := args.GetBool("persist")
-		tmc = tablemanager.NewTableManagerConfig(
+		tmc = tablemanager.NewConfig(
 			int64(timeoutMs), int64(maxRows), persist,
 		)
 		if err := tmc.Validate(); err != nil {
@@ -94,6 +99,8 @@ func (r HTTPReceiver) handle(ctx *fasthttp.RequestCtx) {
 	}
 }
 
+//Stop wait's for request to be processed, stops listening,
+//should close idle connetions (but this doesn't work yet)
 func (r *HTTPReceiver) Stop() (err error) {
 	timer := time.NewTimer(maxShutdownTime)
 	shutdownErr := make(chan error)

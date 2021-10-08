@@ -36,13 +36,13 @@ func TestMakeUrl(t *testing.T) {
 		WriteTimeout:  5 * time.Second,
 	}
 	client := NewClient(config)
-	url := client.MakeUrl("database.table", "field1,field2", 1, 2, false, true)
+	url := client.makeURL("database.table", "field1,field2", 1, 2, false, true)
 	wantURL := "http://127.0.0.1:8124/?table=database.table&fields=field1%2Cfield2&timeout_ms=1&max_rows=2&persist=1"
 	if url != wantURL {
 		t.Errorf("want url: %s ; got %s", wantURL, url)
 	}
 
-	url = client.MakeUrl("database.table", "field1,field2", 1, 2, true, true)
+	url = client.makeURL("database.table", "field1,field2", 1, 2, true, true)
 	wantURL = "http://127.0.0.1:8124/?table=database.table&fields=field1%2Cfield2&sync=1"
 	if url != wantURL {
 		t.Errorf("want url: %s ; got %s", wantURL, url)
@@ -84,7 +84,7 @@ func TestSend(t *testing.T) {
 	ins.Init(inserter.Config{})
 	inserters := map[string]inserter.Inserter{"first": ins}
 	errChan := make(chan error)
-	tmh := tablemanager.NewTableManagerHolder(errChan, inserters)
+	tmh := tablemanager.NewHolder(errChan, inserters)
 	rec := &receiver.HTTPReceiver{}
 	rec.Init(receiver.Config{Bind: bind}, errChan, tmh)
 	rec.Receive()
