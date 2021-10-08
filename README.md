@@ -7,3 +7,16 @@
 a server for batching single requests to databases
 
 # NOT YET READY
+
+### ClickHouse - JSON types compatibility
+
+|                    | string               | number              | int/uint as string  |
+|--------------------|----------------------|---------------------|---------------------|
+| UInt8/16/32/64     | -                    | +                   | +                   |
+| Int8/16/32/64      |                      | +                   | +                   |
+| Float32/64         |                      | +                   |                     |
+| String/FixedString | +                    |                     |                     |
+| Date               | yyyy-mm-dd           | unix time (seconds) | unix time (seconds) |
+| DateTime           | yyyy-mm-dd h:i:s     | unix time (seconds) | unix time (seconds) |
+| DateTime64         | yyyy-mm-dd h:i:s.XXX |                     |                     |
+| Enum8/16           | +                    | +                   |                     |
