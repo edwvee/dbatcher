@@ -35,7 +35,7 @@ func NewClient(config ClientConfig) *Client {
 	}
 }
 
-//Send sends table parameteres and rows to dbatcher.
+//Send sends table parameters and rows to dbatcher.
 //Rows must be slice of slices of primitives like int, float or string
 func (c Client) Send(table, fields string, timeoutMs, maxRows uint, sync, persist bool, rows interface{}) error {
 	url := c.makeURL(table, fields, timeoutMs, maxRows, sync, persist)
