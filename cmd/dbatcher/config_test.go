@@ -25,7 +25,13 @@ func TestConfig(t *testing.T) {
 				MaxConnections:  2,
 				InsertTimeoutMs: 30000,
 			},
-			"second-dummy": {
+			"second-mysql": {
+				Type:            "mysql",
+				Dsn:             "root:@tcp(127.0.0.1)/?charset=utf8mb4,utf8",
+				MaxConnections:  2,
+				InsertTimeoutMs: 30000,
+			},
+			"third-dummy": {
 				Type: "dummy",
 			},
 		},
