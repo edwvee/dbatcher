@@ -23,7 +23,17 @@ pprof_http_bind = "localhost:6034"
         max_connections = 2
         insert_timeout_ms = 30000
 
-    [inserters.second-dummy]
+    [inserters.second-mysql]
+        #use this type for mysql
+        type = "mysql"
+        #connection string (look here https://github.com/go-sql-driver/mysql#dsn-data-source-name)
+        dsn = "root:@tcp(127.0.0.1)/?charset=utf8mb4,utf8"
+        #dsn = "user:password@tcp(hostname)/db_name?charset=utf8mb4,utf8"
+        #maximum simultaneous connections (treat like maximum simultaneous queries)
+        max_connections = 2
+        insert_timeout_ms = 30000
+
+    [inserters.third-dummy]
         #dummy inserter only reports about inserts
         type = "dummy"
     

@@ -30,7 +30,7 @@ type ClickHouseInserter struct {
 
 //Init setups ClickHouseInserter and connects to ClickHouse
 func (ci *ClickHouseInserter) Init(config Config) error {
-	db, err := connectDB(config.Type, config.Dsn, config.MaxConnections)
+	db, err := connectDB("clickhouse", config.Dsn, config.MaxConnections)
 	if err != nil {
 		return err
 	}

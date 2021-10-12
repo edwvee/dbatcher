@@ -8,9 +8,12 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y clickhouse-server clickhouse-client
   - sudo service clickhouse-server start
+services:
+  - mysql
 env:
   GO111MODULE=on
   DBATCHER_TEST_CLICKHOUSE_DSN_KEY="tcp://127.0.0.1:9000?user=default&database=default"
+  DBATCHER_TEST_MYSQL_DSN_KEY="root:@tcp(127.0.0.1)/?charset=utf8mb4,utf8"
 script:
   - go mod download
   - go test ./... -v -race -covermode=atomic -coverprofile="coverage.out"

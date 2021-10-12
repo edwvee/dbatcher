@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.4.1
 	github.com/ClickHouse/clickhouse-go v1.4.9
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/json-iterator/go v1.1.12
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

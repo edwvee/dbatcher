@@ -55,6 +55,8 @@ func makeInserters(c config) map[string]inserter.Inserter {
 		switch config.Type {
 		case "clickhouse":
 			ins = &inserter.ClickHouseInserter{}
+		case "mysql":
+			ins = &inserter.MysqlInserter{}
 		case "dummy":
 			ins = &inserter.DummyInserter{}
 		default:

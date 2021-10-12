@@ -98,3 +98,7 @@ func (t *Table) GetNextRow() []interface{} {
 
 	return row
 }
+
+func (t *Table) GetRawData() []interface{} {
+	return t.data
+}

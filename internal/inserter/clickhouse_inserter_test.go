@@ -17,9 +17,9 @@ import (
 )
 
 const clickhouseDsnKey = "DBATCHER_TEST_CLICKHOUSE_DSN_KEY"
-const tableName = "default.dbatcher_test_table"
+const clickhouseTestTableName = "default.dbatcher_test_table"
 
-var fieldsSlice = []string{
+var clickhouseTestFieldsSlice = []string{
 	`uint8Number`,
 	`uint16Number`,
 	`uint32Number`,
@@ -51,7 +51,7 @@ var fieldsSlice = []string{
 	`enum16String`,
 }
 
-var fields = strings.Join(fieldsSlice, ",")
+var clickhouseTestFields = strings.Join(clickhouseTestFieldsSlice, ",")
 
 var clickhouse *sql.DB
 
@@ -93,7 +93,7 @@ func TestClickhouseGetTableStructure(t *testing.T) {
 		MaxConnections:  2,
 		InsertTimeoutMs: 30000,
 	})
-	ts := table.NewSignature(tableName, fields)
+	ts := table.NewSignature(clickhouseTestTableName, clickhouseTestFields)
 	tbl := table.NewTable(ts)
 	structure, err := ins.getTableStructure(tbl)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestClickhouseGetTableStructure(t *testing.T) {
 	}
 
 	//test when no database in table name
-	ts = table.NewSignature("dbatcher_test_table", fields)
+	ts = table.NewSignature("dbatcher_test_table", clickhouseTestFields)
 	tbl = table.NewTable(ts)
 	structure, err = ins.getTableStructure(tbl)
 	if err != nil {
@@ -163,7 +163,7 @@ func TestClickshouseInsert(t *testing.T) {
 		MaxConnections:  2,
 		InsertTimeoutMs: 30000,
 	})
-	ts := table.NewSignature(tableName, fields)
+	ts := table.NewSignature(clickhouseTestTableName, clickhouseTestFields)
 	table := table.NewTable(ts)
 	now := time.Now()
 	rows := [][]interface{}{{
@@ -337,7 +337,7 @@ func TestNoDatabaseInDsnOrTableName(t *testing.T) {
 	}
 }
 
-func TestInvalidConnect(t *testing.T) {
+func TestInvalidConnectClickhouse(t *testing.T) {
 	dsn := "gfdgfdfggfdm"
 	ins := ClickHouseInserter{}
 	err := ins.Init(Config{
