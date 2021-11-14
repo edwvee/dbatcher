@@ -1,6 +1,7 @@
 package receiver
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	"github.com/edwvee/dbatcher/internal/inserter"
 	"github.com/edwvee/dbatcher/internal/table"
 	"github.com/edwvee/dbatcher/internal/tablemanager"
+	"github.com/edwvee/dbatcher/pkg/httpclient"
 	"github.com/valyala/fasthttp"
 )
 
@@ -203,13 +205,11 @@ func TestHTTPReceiverByRequests(t *testing.T) {
 
 }
 
-//freezed cause there is no way to shutdown fasthttp.Server with idle connectios yet
-/*
 func TestShutdown(t *testing.T) {
 	errChan := make(chan error)
-	tH := tablemanager.NewTableManagerHolder(errChan, nil)
+	tH := tablemanager.NewHolder(errChan, nil)
 	rec := &HTTPReceiver{}
-	err := rec.Init(defaultHttpReceiverConfig, errChan, tH)
+	err := rec.Init(defaultHTTPReceiverConfig, errChan, tH)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -234,7 +234,7 @@ func TestShutdown(t *testing.T) {
 
 func sendRowsContiniously(ctx context.Context, errChan chan error) {
 	config := httpclient.ClientConfig{
-		ServerAddress: "http://" + defaultHttpReceiverBind,
+		ServerAddress: "http://" + defaultHTTPReceiverBind,
 		ReadTimeout:   60 * time.Second,
 		WriteTimeout:  60 * time.Second,
 	}
@@ -253,4 +253,3 @@ main_cycle:
 		}
 	}
 }
-*/
