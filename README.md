@@ -10,6 +10,7 @@ A server for batching single inserts to databases. Gather many single or just sm
 
 ### Supports
 - ClickHouse
+- MySQL
 
 ## Instalation and setup
 1. Install go
@@ -43,7 +44,16 @@ pprof_http_bind = "localhost:6034"
         max_connections = 2
         insert_timeout_ms = 30000
 
-    [inserters.second-dummy]
+    [inserters.second-mysql]
+        #use this type for mysql
+        type = "mysql"
+        #connection string (look here https://github.com/go-sql-driver/mysql#dsn-data-source-name)
+        dsn = "user:password@tcp(hostname)/db_name?charset=utf8mb4,utf8"
+        #maximum simultaneous connections (treat like maximum simultaneous queries)
+        max_connections = 2
+        insert_timeout_ms = 30000
+
+    [inserters.third-dummy]
         #dummy inserter only reports about inserts
         type = "dummy"
 ```
@@ -90,6 +100,21 @@ Body:
 | Float32/64         |                      | +                   |                     |
 | String/FixedString | +                    |                     |                     |
 | Date               | yyyy-mm-dd           | unix time (seconds) | unix time (seconds) |
-| DateTime           | yyyy-mm-dd h:i:s     | unix time (seconds) | unix time (seconds) |
-| DateTime64         | yyyy-mm-dd h:i:s.XXX |                     |                     |
+| DateTime           | yyyy-mm-dd H:i:s     | unix time (seconds) | unix time (seconds) |
+| DateTime64         | yyyy-mm-dd H:i:s.XXX |                     |                     |
 | Enum8/16           | +                    | +                   |                     |
+
+## MySQL - JSON types compatibility
+
+|                                      | string           | number | int/uint/float as string |
+|--------------------------------------|------------------|--------|--------------------------|
+| TINYINT/SMALLINT/INT/BIGINT UNSIGNED | -                | +      | +                        |
+| TINYINT/SMALLINT/INT/BIGINT          |                  | +      | +                        |
+| FLOAT/DOUBLE                         |                  | +      | +                        |
+| CHAR/BINARY/VARCHAR/TEXT             | +                |        |                          |
+| DATE                                 | yyyy-mm-dd       |        |                          |
+| DATETIME/TIMESTAMP                   | yyyy-mm-dd H:i:s |        |                          |
+| ENUM                                 | +                | +      |                          |
+
+1. For MySQL **dbatcher** uses `INSERT IGNORE`.
+2. Those types and formats are tested. Others could work too (see MySQL documentation). Open an issue to add official support.
