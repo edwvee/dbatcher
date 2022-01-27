@@ -25,6 +25,13 @@ A server for batching single inserts to databases. Gather many single or just sm
 #remove if you won't profile
 pprof_http_bind = "localhost:6034"
 
+#log for insert errors (not for sync=1 requests)
+#format: {"timestamp":..., "timestamp_string":..., "error": ..., "table":..., "fields":..., "rows": ...}\n
+#remove or leave empty path if not needed
+[insert_error_logger]
+    path = "error.log"
+    pretty_print = true
+
 [receivers]
 
     [receivers.first-http]
@@ -39,6 +46,7 @@ pprof_http_bind = "localhost:6034"
         #use this type for clickhouse
         type = "clickhouse"
         #connection string (look here https://github.com/ClickHouse/clickhouse-go#dsn)
+        #use native tcp interface, not http or mysql
         dsn = "tcp://localhost:9000?user=default"
         #maximum simultaneous connections (treat like maximum simultaneous queries)
         max_connections = 2

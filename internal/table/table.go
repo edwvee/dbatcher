@@ -102,3 +102,7 @@ func (t *Table) GetNextRow() []interface{} {
 func (t *Table) GetRawData() []interface{} {
 	return t.data
 }
+
+func (t *Table) Reset() {
+	t.dataPos = 0
+}

@@ -12,7 +12,8 @@ import (
 )
 
 func TestNewTableManagerHolder(t *testing.T) {
-	tmh := NewHolder(defaultTestErrChan, defaultTestInserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := NewHolder(defaultTestErrChan, defaultTestInserters, logger)
 	if !reflect.DeepEqual(tmh.inserters, defaultTestInserters) {
 		t.Errorf("unequal inserters: %v, %v", tmh.inserters, defaultTestInserters)
 	}
@@ -32,7 +33,8 @@ func TestNewTableManagerHolder(t *testing.T) {
 
 func TestGetTableManager(t *testing.T) {
 	tmc := defaultTestTableManagerConfig
-	tmh := NewHolder(defaultTestErrChan, defaultTestInserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := NewHolder(defaultTestErrChan, defaultTestInserters, logger)
 	tm := tmh.getTableManager(&defaultTestTableSignature, tmc)
 	if tm == nil {
 		t.Error("got nil table manager")
@@ -66,7 +68,8 @@ func TestGetTableManager(t *testing.T) {
 
 func TestStopUnusedTableManagers(t *testing.T) {
 	tmc := defaultTestTableManagerConfig
-	tmh := NewHolder(defaultTestErrChan, defaultTestInserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := NewHolder(defaultTestErrChan, defaultTestInserters, logger)
 	tmh.getTableManager(&defaultTestTableSignature, tmc)
 	if len(tmh.managers) == 0 {
 		t.Errorf("should present table manager in map")
@@ -92,7 +95,8 @@ func TestStopTableManagersPositive(t *testing.T) {
 	si := &selfSliceInserter{}
 	si.Init(inserter.Config{})
 	inserters := map[string]inserter.Inserter{"self slice inserter": si}
-	tmh := NewHolder(defaultTestErrChan, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := NewHolder(defaultTestErrChan, inserters, logger)
 	tmh.getTableManager(&defaultTestTableSignature, tmc)
 
 	const managersSize = 10
@@ -118,7 +122,8 @@ func TestStopTableManagersPositive(t *testing.T) {
 func TestStopTableManagersNegative(t *testing.T) {
 	tmc := defaultTestTableManagerConfig
 	inserters := map[string]inserter.Inserter{"first": &longSleepInserter{}, "second": &longSleepInserter{}}
-	tmh := NewHolder(defaultTestErrChan, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := NewHolder(defaultTestErrChan, inserters, logger)
 	tmh.getTableManager(&defaultTestTableSignature, tmc)
 
 	const managersSize = 10
@@ -146,7 +151,8 @@ func TestTableManagerAppendSyncPositive(t *testing.T) {
 	si := &selfSliceInserter{}
 	si.Init(inserter.Config{})
 	inserters := map[string]inserter.Inserter{"self slice inserter": si}
-	tmh := NewHolder(defaultTestErrChan, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := NewHolder(defaultTestErrChan, inserters, logger)
 	ts := table.NewSignature("database.`table`", "field1")
 	err := tmh.Append(&ts, tmc, true, []byte("[[1]]"))
 	if err != nil {
@@ -163,7 +169,8 @@ func TestTableManagerAppendSyncNegative(t *testing.T) {
 	si := &selfSliceInserter{}
 	si.Init(inserter.Config{})
 	inserters := map[string]inserter.Inserter{"self slice inserter": si}
-	tmh := NewHolder(defaultTestErrChan, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := NewHolder(defaultTestErrChan, inserters, logger)
 	ts := table.NewSignature("database.`table`", "field1")
 	err := tmh.Append(&ts, tmc, true, []byte("[[1]56]"))
 	if err == nil {

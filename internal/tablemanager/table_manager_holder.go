@@ -22,18 +22,20 @@ var ErrTableManagerDidntStopInTime = errors.New("didn't stop in time")
 //stops them when they are not used for a long time.
 //Serves as frontend to table managers.
 type Holder struct {
-	inserters        map[string]inserter.Inserter
-	managers         map[string]*TableManager
-	lastManagerVisit map[string]time.Time
-	managersMut      sync.Mutex
+	inserters         map[string]inserter.Inserter
+	managers          map[string]*TableManager
+	lastManagerVisit  map[string]time.Time
+	managersMut       sync.Mutex
+	insertErrorLogger *inserter.InsertErrorLogger
 }
 
 //NewHolder creates new holder
-func NewHolder(errChan chan error, inserters map[string]inserter.Inserter) *Holder {
+func NewHolder(errChan chan error, inserters map[string]inserter.Inserter, insertErrorLogger *inserter.InsertErrorLogger) *Holder {
 	return &Holder{
-		inserters:        inserters,
-		managers:         map[string]*TableManager{},
-		lastManagerVisit: map[string]time.Time{},
+		inserters:         inserters,
+		managers:          map[string]*TableManager{},
+		lastManagerVisit:  map[string]time.Time{},
+		insertErrorLogger: insertErrorLogger,
 	}
 }
 
@@ -47,7 +49,7 @@ func (h *Holder) Append(ts *table.Signature, config Config, sync bool, rowsJSON 
 	}
 
 	//not optimized due sync is debug feature
-	manager := NewTableManager(ts, config, h.inserters)
+	manager := NewTableManager(ts, config, h.inserters, h.insertErrorLogger)
 	if err := manager.AppendRowsToTable(rowsJSON); err != nil {
 		return err
 	}
@@ -61,7 +63,7 @@ func (h *Holder) getTableManager(ts *table.Signature, config Config) *TableManag
 	manager, ok := h.managers[key]
 	if !ok {
 		log.Printf("new table: %s", key)
-		manager = NewTableManager(ts, config, h.inserters)
+		manager = NewTableManager(ts, config, h.inserters, h.insertErrorLogger)
 		go manager.Run()
 		h.managers[key] = manager
 	}

@@ -19,23 +19,25 @@ type TableManager struct {
 	tableMut  sync.Mutex
 	rowsJsons []byte
 
-	maxRows     int64
-	inserters   map[string]inserter.Inserter
-	timeoutMs   int64
-	sendChannel chan struct{}
-	stopChannel chan struct{}
+	maxRows           int64
+	inserters         map[string]inserter.Inserter
+	insertErrorLogger *inserter.InsertErrorLogger
+	timeoutMs         int64
+	sendChannel       chan struct{}
+	stopChannel       chan struct{}
 }
 
 //NewTableManager returns configured table manager
-func NewTableManager(ts *table.Signature, config Config, inserters map[string]inserter.Inserter) *TableManager {
+func NewTableManager(ts *table.Signature, config Config, inserters map[string]inserter.Inserter, insertErrorLogger *inserter.InsertErrorLogger) *TableManager {
 	return &TableManager{
-		table:       table.NewTable(*ts),
-		rowsJsons:   []byte{},
-		inserters:   inserters,
-		maxRows:     int64(config.MaxRows),
-		timeoutMs:   config.TimeoutMs,
-		sendChannel: make(chan struct{}, 1),
-		stopChannel: make(chan struct{}),
+		table:             table.NewTable(*ts),
+		rowsJsons:         []byte{},
+		inserters:         inserters,
+		insertErrorLogger: insertErrorLogger,
+		maxRows:           int64(config.MaxRows),
+		timeoutMs:         config.TimeoutMs,
+		sendChannel:       make(chan struct{}, 1),
+		stopChannel:       make(chan struct{}),
 	}
 }
 
@@ -118,6 +120,12 @@ func (tm *TableManager) DoInsert() (err error) {
 		}
 	} else {
 		err = tm.insertConcurrently()
+	}
+	if err != nil {
+		tbl.Reset()
+		if logErr := tm.insertErrorLogger.Log(err, tbl); logErr != nil {
+			log.Printf("failed to write error log: %s", logErr)
+		}
 	}
 	tbl.Free()
 

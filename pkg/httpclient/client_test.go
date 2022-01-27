@@ -84,7 +84,8 @@ func TestSend(t *testing.T) {
 	ins.Init(inserter.Config{})
 	inserters := map[string]inserter.Inserter{"first": ins}
 	errChan := make(chan error)
-	tmh := tablemanager.NewHolder(errChan, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := tablemanager.NewHolder(errChan, inserters, logger)
 	rec := &receiver.HTTPReceiver{}
 	rec.Init(receiver.Config{Bind: bind}, errChan, tmh)
 	rec.Receive()

@@ -36,9 +36,14 @@ func TestConfig(t *testing.T) {
 			},
 		},
 		PprofHttpBind: "localhost:6034",
+		InsertErrorLogger: inserter.InsertErrorLoggerConfig{
+			Path:        "error.log",
+			PrettyPrint: true,
+		},
 	}
 
 	if !reflect.DeepEqual(resultingConfig, expectedConfig) {
+		t.Errorf("got %#v\nwant %#v", resultingConfig, expectedConfig)
 		t.Fail()
 	}
 }

@@ -11,9 +11,10 @@ import (
 )
 
 func TestNewTableManager(t *testing.T) {
+	logger := inserter.NewInsertErrorLogger(nil, false)
 	tm := NewTableManager(
 		&defaultTestTableSignature, defaultTestTableManagerConfig,
-		defaultTestInserters,
+		defaultTestInserters, logger,
 	)
 	tmExpected := &TableManager{
 		table:       table.NewTable(defaultTestTableSignature),
@@ -50,7 +51,8 @@ func TestShouldAppendWhenTooMuchRows(t *testing.T) {
 	si := &selfSliceInserter{}
 	si.Init(inserter.Config{})
 	inserters := map[string]inserter.Inserter{"self slice inserter": si}
-	tm := NewTableManager(&defaultTestTableSignature, tmc, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tm := NewTableManager(&defaultTestTableSignature, tmc, inserters, logger)
 	go tm.Run()
 	for i := 0; i < maxRows; i++ {
 		err := tm.AppendRowsToTable([]byte("[[1,2,3]]"))
@@ -69,7 +71,8 @@ func TestShouldAppendWhenTooMuchRows(t *testing.T) {
 func TestShouldReturnMultiError(t *testing.T) {
 	tmc := NewConfig(1000, 100, false)
 	inserters := map[string]inserter.Inserter{"1": &errorInserter{}, "2": &errorInserter{}}
-	tm := NewTableManager(&defaultTestTableSignature, tmc, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tm := NewTableManager(&defaultTestTableSignature, tmc, inserters, logger)
 	err := tm.AppendRowsToTable([]byte("[[1,2,3]]"))
 	if err != nil {
 		t.Fatal(err)

@@ -38,7 +38,8 @@ func TestReceive(t *testing.T) {
 	inserters := map[string]inserter.Inserter{
 		"dummy": &inserter.DummyInserter{},
 	}
-	tmh := tablemanager.NewHolder(errChan, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := tablemanager.NewHolder(errChan, inserters, logger)
 	if err := rec.Init(defaultHTTPReceiverConfig, errChan, tmh); err != nil {
 		t.Errorf("shouldn't return error: %s", err.Error())
 	}
@@ -106,7 +107,8 @@ func TestHTTPReceiverByRequests(t *testing.T) {
 	inserters := map[string]inserter.Inserter{
 		"first": ins,
 	}
-	tmh := tablemanager.NewHolder(errChan, inserters)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tmh := tablemanager.NewHolder(errChan, inserters, logger)
 	if err := rec.Init(defaultHTTPReceiverConfig, errChan, tmh); err != nil {
 		t.Errorf("shouldn't return error: %s", err.Error())
 	}
@@ -207,7 +209,8 @@ func TestHTTPReceiverByRequests(t *testing.T) {
 
 func TestShutdown(t *testing.T) {
 	errChan := make(chan error)
-	tH := tablemanager.NewHolder(errChan, nil)
+	logger := inserter.NewInsertErrorLogger(nil, false)
+	tH := tablemanager.NewHolder(errChan, nil, logger)
 	rec := &HTTPReceiver{}
 	err := rec.Init(defaultHTTPReceiverConfig, errChan, tH)
 	if err != nil {

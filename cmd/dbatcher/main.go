@@ -26,9 +26,14 @@ func main() {
 		go http.ListenAndServe(c.PprofHttpBind, nil)
 	}
 
+	insertErrorLogger, err := inserter.NewInsertErrorLoggerFromConfig(c.InsertErrorLogger)
+	if err != nil {
+		log.Fatalf("can't open file for insert error logger: %s", err)
+	}
+	defer insertErrorLogger.Close()
 	inserters := makeInserters(c)
 	errChan := make(chan error)
-	tableManagerHolder := tablemanager.NewHolder(errChan, inserters)
+	tableManagerHolder := tablemanager.NewHolder(errChan, inserters, insertErrorLogger)
 	tableManagerHolder.StopUnusedManagers()
 	receivers := makeAndStartReceivers(c, errChan, tableManagerHolder)
 

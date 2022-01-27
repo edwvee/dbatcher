@@ -6,7 +6,8 @@ import (
 )
 
 type config struct {
-	Receivers     map[string]receiver.Config `toml:"receivers"`
-	Inserters     map[string]inserter.Config `toml:"inserters"`
-	PprofHttpBind string                     `toml:"pprof_http_bind"`
+	Receivers         map[string]receiver.Config       `toml:"receivers"`
+	Inserters         map[string]inserter.Config       `toml:"inserters"`
+	PprofHttpBind     string                           `toml:"pprof_http_bind"`
+	InsertErrorLogger inserter.InsertErrorLoggerConfig `toml:"insert_error_logger"`
 }

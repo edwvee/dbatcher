@@ -4,6 +4,13 @@
 #remove if you won't profile
 pprof_http_bind = "localhost:6034"
 
+#log for insert errors (not for sync=1 requests)
+#format: {"timestamp":..., "timestamp_string":..., "error": ..., "table":..., "fields":..., "rows": ...}\n
+#remove or leave empty path if not needed
+[insert_error_logger]
+    path = "error.log"
+    pretty_print = true
+
 [receivers]
 
     [receivers.first-http]
