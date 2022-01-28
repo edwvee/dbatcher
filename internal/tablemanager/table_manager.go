@@ -119,7 +119,7 @@ func (tm *TableManager) DoInsert() (err error) {
 			err = inserter.Insert(tbl)
 		}
 	} else {
-		err = tm.insertConcurrently()
+		err = tm.insertConcurrently(tbl)
 	}
 	if err != nil {
 		tbl.Reset()
@@ -152,13 +152,13 @@ func (tm *TableManager) getTableAndMakeNew() *table.Table {
 	return oldTable
 }
 
-func (tm *TableManager) insertConcurrently() error {
+func (tm *TableManager) insertConcurrently(t *table.Table) error {
 	errChan := make(chan error)
 	defer close(errChan)
 	for _, ins := range tm.inserters {
 		go func(inserter inserter.Inserter, t table.Table) {
 			errChan <- inserter.Insert(&t)
-		}(ins, *tm.table)
+		}(ins, *t)
 	}
 	errMessages := make([]string, 0, len(tm.inserters))
 	for range tm.inserters {

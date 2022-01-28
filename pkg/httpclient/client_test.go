@@ -87,8 +87,11 @@ func TestSend(t *testing.T) {
 	logger := inserter.NewInsertErrorLogger(nil, false)
 	tmh := tablemanager.NewHolder(errChan, inserters, logger)
 	rec := &receiver.HTTPReceiver{}
-	rec.Init(receiver.Config{Bind: bind}, errChan, tmh)
+	if err := rec.Init(receiver.Config{Bind: bind}, errChan, tmh); err != nil {
+		t.Fatal(err)
+	}
 	rec.Receive()
+	time.Sleep(time.Second)
 
 	config := ClientConfig{
 		ServerAddress: "http://" + bind,
@@ -97,17 +100,17 @@ func TestSend(t *testing.T) {
 	}
 	err := Send(config, "table", "field1, field2", 10, 10, false, false, [][]interface{}{{"1", "2"}})
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	time.Sleep(time.Millisecond * 100)
 	data := ins.TakeSlice()
 	if len(data) != 1 {
-		t.Error("didn't insert")
+		t.Fatal("didn't insert")
 	}
 	err = Send(config, "table", "field1, field2", 10, 10, false, true, [][]interface{}{{"1", "2"}})
 	t.Log(err)
 	if err == nil {
-		t.Error("should get error if tried to use persist")
+		t.Fatal("should get error if tried to use persist")
 	}
 
 	config = ClientConfig{
