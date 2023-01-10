@@ -10,13 +10,13 @@ import (
 	_ "github.com/go-sql-driver/mysql" //golint: MysqlInserter won't really work without it
 )
 
-//MysqlInserter inserts rows into MySQL
+// MysqlInserter inserts rows into MySQL
 type MysqlInserter struct {
 	db            *sql.DB
 	insertTimeout time.Duration
 }
 
-//Init setups MysqlInserter and connects to mysql
+// Init setups MysqlInserter and connects to mysql
 func (mi *MysqlInserter) Init(config Config) error {
 	db, err := connectDB("mysql", config.Dsn, config.MaxConnections)
 	if err != nil {
@@ -28,10 +28,13 @@ func (mi *MysqlInserter) Init(config Config) error {
 	return nil
 }
 
-//Insert inserts rows to mysql
+// Insert inserts rows to mysql
 func (mi MysqlInserter) Insert(t *table.Table) error {
+	rowsLen := t.GetRowsLen()
 	sqlStr := mi.makeSQL(t)
-	println(sqlStr)
+	log.Printf(
+		"MySQL: starting insert of %d rows into %s", rowsLen, t.GetTableName(),
+	)
 	start := time.Now()
 	count, err := mi.insert(t, sqlStr)
 	if err != nil {
@@ -39,8 +42,8 @@ func (mi MysqlInserter) Insert(t *table.Table) error {
 	}
 	passed := time.Since(start)
 	log.Printf(
-		"MySQL: inserted %d rows for %s; Query: %s",
-		count, passed.String(), strings.Split(sqlStr, "VALUES")[0],
+		"MySQL: inserted %d/%d rows for %s; Query: %s",
+		count, rowsLen, passed.String(), strings.Split(sqlStr, "VALUES")[0],
 	)
 	return nil
 }
